@@ -1,3 +1,0 @@
-D:/GitHub/Moza2Joystick/cmake-build-release-visual-studio/CMakeFiles/Moza2Joystick.dir
-D:/GitHub/Moza2Joystick/cmake-build-release-visual-studio/CMakeFiles/edit_cache.dir
-D:/GitHub/Moza2Joystick/cmake-build-release-visual-studio/CMakeFiles/rebuild_cache.dir
