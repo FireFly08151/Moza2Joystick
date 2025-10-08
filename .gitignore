@@ -44,6 +44,7 @@
 CMakeFiles/
 CMakeCache.txt
 cmake-build-*/
+builds/
 Makefile
 *.cmake
 *.ninja

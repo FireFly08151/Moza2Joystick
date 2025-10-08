@@ -1,7 +1,8 @@
 #include "MozaReader.h"
+#include "Utils.h"
 #include <iostream>
 #include <sstream>
-#include <iomanip> // for std::setw and std::setfill
+#include <string>
 
 MozaReader::MozaReader() {
     hid_init();
@@ -22,7 +23,7 @@ bool MozaReader::findDevice(unsigned short vendor_id) {
                    << L" | " << cur->product_string
                    << L" | VID: " << std::hex << cur->vendor_id
                    << L" | PID: " << cur->product_id
-                   << L" | Path: " << cur->path << std::endl;
+                   << std::endl;
 
         // Look for likely Moza base or wheel (R9, R16, etc.)
         if (cur->vendor_id == vendor_id) {
@@ -49,7 +50,9 @@ bool MozaReader::openDevice() {
         return false;
     }
 
-    deviceHandle = hid_open_path(std::string(deviceInfo.path.begin(), deviceInfo.path.end()).c_str());
+    std::string pathUtf8 = Utils::wstringToUtf8(deviceInfo.path);
+    deviceHandle = hid_open_path(pathUtf8.c_str());
+
     if (!deviceHandle) {
         std::wcerr << L"Failed to open Moza device.\n";
         return false;
@@ -82,7 +85,7 @@ MozaState MozaReader::parseReport(const unsigned char *buffer, size_t length) {
 
     // Example mapping (update after testing)
     uint16_t rawWheel = buffer[1] | (buffer[2] << 8); // 0..65535
-    int16_t wheel = static_cast<int16_t>(rawWheel - 32768); // -32768..32767
+    auto wheel = static_cast<int16_t>(rawWheel - 32768); // -32768..32767
     state.wheel = wheel;
     //state.wheel = static_cast<int16_t>((buffer[1] << 8) | buffer[2]);
     //state.wheel = buffer[1] | (buffer[2] << 8);
