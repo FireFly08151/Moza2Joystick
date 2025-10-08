@@ -1,0 +1,4 @@
+C:\Users\veija\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=D:/GitHub/vcpkg/scripts/buildsystems/vcpkg.cmake -G "MinGW Makefiles" -S D:\GitHub\Moza2Joystick -B D:\GitHub\Moza2Joystick\cmake-build-debug
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: D:/GitHub/Moza2Joystick/cmake-build-debug

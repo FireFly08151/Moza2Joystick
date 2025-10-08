@@ -1,0 +1,1 @@
+ "C:/Program Files/vJoy/x64/SDK/lib/vJoyInterface.lib" "D:/GitHub/vcpkg/installed/x64-windows/debug/lib/hidapi.lib" -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 

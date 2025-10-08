@@ -1,0 +1,3 @@
+D:/GitHub/Moza2Joystick/cmake-build-release/CMakeFiles/Moza2Joystick.dir
+D:/GitHub/Moza2Joystick/cmake-build-release/CMakeFiles/edit_cache.dir
+D:/GitHub/Moza2Joystick/cmake-build-release/CMakeFiles/rebuild_cache.dir
