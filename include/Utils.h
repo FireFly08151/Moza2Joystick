@@ -1,8 +1,12 @@
-//
-// Created by veija on 08-Oct-25.
-//
+#pragma once
 
-#ifndef MOZA2JOYSTICK_UTILS_H
-#define MOZA2JOYSTICK_UTILS_H
+#include <cstdint>
 
-#endif //MOZA2JOYSTICK_UTILS_H
+namespace Utils {
+    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax);
+
+    // Optional overload for unsigned ranges like 0..255
+    inline long mapToVJoyAxis(uint8_t value) {
+        return static_cast<int32_t>(value * 128 - 32768); // 0..255 → -32768..0
+    }
+}

@@ -1,30 +1,42 @@
-#include <windows.h>
-#include "hidapi.h"
-#include "public.h"
-#include "vJoyInterface.h"
+#include "VJoyOutput.h"
+#include <thread>
+#include "MozaReader.h"
+#include "Utils.h"
 #include <iostream>
 
+
 int main() {
-    // Test vJoy
-    if (vJoyEnabled())
-        std::cout << "vJoy driver detected!" << std::endl;
-    else
-        std::cout << "vJoy driver NOT detected!" << std::endl;
-
-    // Test HID
-    hid_init();
-    struct hid_device_info *devs, *cur_dev;
-    devs = hid_enumerate(0x0000, 0x0000); // list all
-    cur_dev = devs;
-    while (cur_dev) {
-        std::wcout << L"Device: " << cur_dev->manufacturer_string
-                   << L" | Product: " << cur_dev->product_string
-                   << L" | VID: " << std::hex << cur_dev->vendor_id
-                   << L" PID: " << cur_dev->product_id << std::endl;
-        cur_dev = cur_dev->next;
+    MozaReader reader;
+    if (!reader.findDevice()) {
+        std::cerr << "Moza device not found\n";
+        return -1;
     }
-    hid_free_enumeration(devs);
-    hid_exit();
+    if (!reader.openDevice()) {
+        std::cerr << "Failed to open Moza device\n";
+        return -1;
+    }
 
+    VJoyOutput vjoy(1);
+    if (!vjoy.initialize()) {
+        std::cerr << "Failed to initialize vJoy device!\n";
+        return 1;
+    }
+
+    unsigned char buffer[64];
+
+    while (true) {
+        if (reader.readData(buffer, sizeof(buffer))) {
+            MozaState state = MozaReader::parseReport(buffer, sizeof(buffer));
+            vjoy.update(state);
+            std::cout << "\rWheel: " << state.wheel
+                      << " Throttle: " << int(state.throttle)
+                      << " Brake: " << int(state.brake)
+                      << " Clutch: " << int(state.clutch)
+                      << "    " << std::flush;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
+    reader.closeDevice();
     return 0;
 }

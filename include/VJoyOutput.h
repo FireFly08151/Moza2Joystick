@@ -1,8 +1,16 @@
-//
-// Created by veija on 08-Oct-25.
-//
+#pragma once
+#include <cstdint>
+#include "MozaReader.h" // for MozaState
 
-#ifndef MOZA2JOYSTICK_VJOYOUTPUT_H
-#define MOZA2JOYSTICK_VJOYOUTPUT_H
+class VJoyOutput {
+public:
+    explicit VJoyOutput(uint8_t deviceId = 1);
+    ~VJoyOutput();
 
-#endif //MOZA2JOYSTICK_VJOYOUTPUT_H
+    bool initialize();
+    void update(const MozaState &state);
+
+private:
+    uint8_t m_deviceId;
+    bool m_initialized;
+};
