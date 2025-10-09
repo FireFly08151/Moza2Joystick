@@ -8,7 +8,7 @@
 
 **Moza2Joystick** directly interfaces with **MOZA Racing hardware** over the MOZA SDK.
 
-It reads the values from the SDK and forwards them to a **virtual joystick device** provided by [**vJoy**](http://vjoystick.sourceforge.net/).
+It reads the values from the [SDK](https://mozaracing.com/pages/sdk) and forwards them to a **virtual joystick device** provided by [**vJoy**](http://vjoystick.sourceforge.net/).
 
 This makes it possible to use your Moza gear in:
 - Games without native Moza support (e.g. older sims, rally titles, indie racers)
