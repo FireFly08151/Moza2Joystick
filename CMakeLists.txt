@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 # ---------------------------------------------------------------
 project(Moza2Joystick
         VERSION 0.1.0
-        DESCRIPTION "Map Moza wheel input to virtual joystick via vJoy and test RS21 SDK API"
+        DESCRIPTION "Map Moza wheel input to virtual joystick via vJoy and MOZA SDK"
         LANGUAGES CXX
 )
 
@@ -46,8 +46,7 @@ message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}
 # ---------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------
-
-# ---- vJoy + HIDAPI ----
+# Allow user to specify the vJoy SDK root directory manually or via env var
 set(VJOY_SDK_DIR
         "$ENV{VJOY_SDK_DIR}"
         CACHE PATH "Path to the vJoy SDK directory (e.g. C:/Program Files/vJoy/SDK)"
@@ -57,6 +56,7 @@ if(NOT VJOY_SDK_DIR)
     message(WARNING "VJOY_SDK_DIR not set. Please configure it manually.")
 endif()
 
+# Find hidapi (via vcpkg or system package)
 find_package(hidapi CONFIG REQUIRED)
 
 # ---- Qt + OpenSSL + RS21 SDK (for API test) ----
@@ -121,7 +121,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 # ---------------------------------------------------------------
-# Example Executable
+# Basic Connection Executable
 # ---------------------------------------------------------------
 add_executable(basic_connection_test
         examples/basic_connection_test/main.cpp

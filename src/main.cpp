@@ -1,13 +1,14 @@
 #include "VJoyOutput.h"
 #include <thread>
 #include "MozaSDK.h"
+#include "MozaReader.h"
 #include <iostream>
 #include "IMozaDevice.h"
 
 int main() {
     // Choose implementation
     std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaSDK>();
-    // or: std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaReader>();
+    //std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaReader>();
 
     if (!moza->initialize()) {
         std::cerr << "Failed to initialize MOZA device\n";
