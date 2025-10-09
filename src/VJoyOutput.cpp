@@ -1,4 +1,6 @@
+#define DIRECTINPUT_VERSION 0x0800
 #include <windows.h>
+#include <dinput.h>
 #include "public.h"
 #include "vjoyinterface.h"
 #include "VJoyOutput.h"
@@ -29,12 +31,10 @@ bool VJoyOutput::initialize() {
     return true;
 }
 
-void VJoyOutput::update(const Utils::MozaState &state) {
+void VJoyOutput::update(const Utils::MozaState &state) const {
     if (!m_initialized) return;
 
     // Wheel: map -32768..32767 → 0..65535
-    //long wheelVal = static_cast<long>(state.wheel / 2 + 16384);
-    //SetAxis(wheelVal, m_deviceId, HID_USAGE_X);
     SetAxis(Utils::mapToVJoyAxis(state.wheel, -32768, 32768), m_deviceId, HID_USAGE_X);
 
     // Pedals: scale 0..255 → 0..32767
@@ -43,6 +43,6 @@ void VJoyOutput::update(const Utils::MozaState &state) {
     SetAxis(state.clutch * 128, m_deviceId, HID_USAGE_Z);
 
     // Buttons
-    for (int i = 0; i < 16; ++i)
-        SetBtn(state.buttons[i] != 0, m_deviceId, i + 1);
+    for (int i = 0; i < 128; ++i)
+        SetBtn(state.buttons[i], m_deviceId, i + 1);
 }

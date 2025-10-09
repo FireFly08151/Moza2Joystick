@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include "MozaReader.h" // for MozaState
+#include "Utils.h"
 
 class VJoyOutput {
 public:
@@ -8,7 +8,7 @@ public:
     ~VJoyOutput();
 
     bool initialize();
-    void update(const Utils::MozaState &state);
+    void update(const Utils::MozaState &state) const;
 
 private:
     uint8_t m_deviceId;
