@@ -1,25 +1,38 @@
 # Moza2Joystick
 
-> A lightweight HID-to-vJoy bridge that converts **MOZA wheel and pedal inputs** into **virtual joystick signals**, enabling full controller compatibility in games that don’t natively support Moza hardware.
+> A lightweight bridge that converts MOZA Racing wheel and pedal inputs into virtual joystick signals (via vJoy) 
+> — enabling full controller compatibility even in games without native MOZA support.
 
 ---
 
 ## Overview
 
-**Moza2Joystick** directly interfaces with **MOZA Racing hardware** over the MOZA SDK.
+**Moza2Joystick** lets you use your MOZA hardware in _any_ game that supports standard game controllers.
 
-It reads the values from the [SDK](https://mozaracing.com/pages/sdk) and forwards them to a **virtual joystick device** provided by [**vJoy**](http://vjoystick.sourceforge.net/).
+It reads real-time input from your devices using either:
 
-This makes it possible to use your Moza gear in:
-- Games without native Moza support (e.g. older sims, rally titles, indie racers)
-- Emulators and generic joystick-input applications
+- MOZA SDK — for maximum performance and official data access
+- HIDAPI (MozaReader) — for a driver-independent fallback mode
+
+All input is then forwarded to a **vJoy virtual controller**, so your system sees it as a regular joystick or gamepad.
 
 ---
 
 ## Features
 
-- **MOZA SDK** — direct data from the SDK
-- **vJoy integration** — presents as a standard joystick or controller
+Dual input backends
+- SDK mode: Uses the official MOZA SDK (`mozaAPI.h`)
+- HID mode: Uses raw HID data via `hidapi`
+
+vJoy output
+- Emulates a fully functional joystick device
+- Compatible with any title that supports DirectInput or XInput
+
+Live input forwarding
+- Wheel rotation, pedals, and buttons are mapped 1:1 to the vJoy device
+
+Modular design
+- Common interface `IMozaDevice` allows you to switch between SDK and HID readers seamlessly
 
 ---
 
@@ -29,7 +42,6 @@ This makes it possible to use your Moza gear in:
 Moza2Joystick/
 ├── src/            # Core source code
 ├── include/        # Header files
-├── config/         # Example configuration profiles
 ├── examples/       # Sample setups or test utilities
 ├── docs/           # Documentation and protocol references
 ├── CMakeLists.txt  # Build system
@@ -55,5 +67,6 @@ See the [License](./LICENSE) file for details
 ---
 
 ## Credits
-- Moza Racing — for hardware
-- vJoy communities — for virtual device support
+- Moza Racing — for their SDK
+- vJoy Project — for the virtual joystick driver
+- hidapi developers — for the cross-platform HID access library

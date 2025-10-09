@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 # ---------------------------------------------------------------
 project(Moza2Joystick
         VERSION 0.1.0
-        DESCRIPTION "Map Moza wheel input to virtual joystick via vJoy and MOZA SDK"
+        DESCRIPTION "Map Moza wheel input to virtual joystick via vJoy and MOZA SDK or hidapi"
         LANGUAGES CXX
 )
 
