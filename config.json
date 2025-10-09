@@ -1,0 +1,19 @@
+{
+  "backend": {
+    "selected": "hidapi",
+    "available": ["MOZA_SDK", "hidapi"]
+  },
+  "vJoy": {
+    "device_id": 1,
+    "axis_mappings": {
+      "X": "LeftStickX",
+      "Y": "LeftStickY",
+      "Z": "Throttle"
+    },
+    "button_mappings": {
+      "Fire": 1,
+      "Jump": 2,
+      "Menu": 3
+    }
+  }
+}

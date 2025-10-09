@@ -1,21 +1,19 @@
 #include "VJoyOutput.h"
 #include <thread>
-#include "MozaSDK.h"
-#include "MozaReader.h"
 #include <iostream>
-#include "IMozaDevice.h"
+#include "MozaFactory.h"
 
 int main() {
-    // Choose implementation
-    std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaSDK>();
-    //std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaReader>();
+    Utils::Config cfg = Utils::loadConfig("config.json");
+
+    auto moza = Utils::createMozaDevice(cfg.backend);
 
     if (!moza->initialize()) {
         std::cerr << "Failed to initialize MOZA device\n";
         return -1;
     }
 
-    VJoyOutput vjoy(1);
+    VJoyOutput vjoy(cfg.vjoyDeviceId);
     if (!vjoy.initialize()) {
         std::cerr << "Failed to initialize vJoy device!\n";
         return 1;

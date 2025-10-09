@@ -59,6 +59,9 @@ endif()
 # Find hidapi (via vcpkg or system package)
 find_package(hidapi CONFIG REQUIRED)
 
+# Find nlohmann/json.hpp (via vcpkg or system package)
+find_package(nlohmann_json CONFIG REQUIRED)
+
 # ---- Qt + OpenSSL + RS21 SDK (for API test) ----
 if(DEFINED ENV{VCPKG_INSTALLED_DIR})
     list(APPEND CMAKE_PREFIX_PATH "$ENV{VCPKG_INSTALLED_DIR}/$ENV{VCPKG_TARGET_TRIPLET}")
@@ -118,6 +121,7 @@ target_link_libraries(${PROJECT_NAME}
         dxguid
         user32
         "C:/Program Files (x86)/MOZA_SDK/1.0.1.6/MSVC2022-64/lib/MOZA_SDK.lib"
+        nlohmann_json::nlohmann_json
 )
 
 # ---------------------------------------------------------------
@@ -180,14 +184,34 @@ set(MOZA_SDK_DLL_PATH
 set(QT_BIN_DIR "C:/Qt/6.9.3/msvc2022_64/bin" CACHE PATH "Qt bin directory")
 set(WINDEPLOYQT_EXE "${QT_BIN_DIR}/windeployqt.exe")
 
+set(CONFIG_FILE "${CMAKE_SOURCE_DIR}/config.json")
+
+# Define which DLLs each target needs
+set(HIDAPI_TARGETS ${PROJECT_NAME} Moza2Joystick APITest basic_connection_test)
+set(VJOY_TARGETS ${PROJECT_NAME} Moza2Joystick basic_connection_test)
+set(MOZA_TARGETS Moza2Joystick APITest)
+set(QT_TARGETS APITest)
+set(CONFIG_TARGETS "${PROJECT_NAME}" "Moza2Joystick")
+
+foreach(target ${CONFIG_TARGETS})
+    if(TARGET ${target} AND EXISTS "${CONFIG_FILE}")
+        set(copy_target_name "copy_config_${target}")
+
+        if(NOT TARGET ${copy_target_name})
+            add_custom_target(${copy_target_name} ALL
+                    COMMAND ${CMAKE_COMMAND} -E copy
+                    "${CONFIG_FILE}"
+                    "$<TARGET_FILE_DIR:${target}>/config.json"
+                    COMMENT "Copying config.json for ${target} -> $<TARGET_FILE_DIR:${target}>"
+                    VERBATIM
+            )
+        endif()
+
+        add_dependencies(${target} ${copy_target_name})
+    endif()
+endforeach()
 
 foreach(target ${PROJECT_NAME} Moza2Joystick APITest basic_connection_test)
-
-    # Define which DLLs each target needs
-    set(HIDAPI_TARGETS ${PROJECT_NAME} Moza2Joystick APITest basic_connection_test)
-    set(VJOY_TARGETS ${PROJECT_NAME} Moza2Joystick basic_connection_test)
-    set(MOZA_TARGETS APITest)
-    set(QT_TARGETS APITest)
 
     if(EXISTS "${HIDAPI_DLL_PATH}" AND target IN_LIST HIDAPI_TARGETS)
         add_custom_command(TARGET ${target} POST_BUILD
