@@ -1,9 +1,18 @@
 # Building Moza2Joystick (Windows x64)
 
 ## Dependencies
-- Visual Studio 2022 (x64 toolchain)
-- vJoy SDK (x64)
-- hidapi via vcpkg
+| Dependency              | Source                                                            | Notes                                                          |
+|-------------------------|-------------------------------------------------------------------|----------------------------------------------------------------|
+| **Visual Studio 2022**  | System toolchain                                                  | Use MSVC x64 build tools                                       |
+| **CMake ≥ 3.21**        | [cmake.org](https://cmake.org/download/)                          | Required for configuration and build                           |
+| **vcpkg**               | [github.com/microsoft/vcpkg](https://github.com/microsoft/vcpkg)  | Used for dependency management                                 |
+| **vJoy SDK (x64)**      | [vJoy Official Site](https://sourceforge.net/projects/vjoystick/) | Provides `vJoyInterface.lib` and `.dll`                        |
+| **hidapi**              | via vcpkg (`vcpkg install hidapi:x64-windows`)                    | USB HID access                                                 |
+| **Qt (Base + Tools)**   | via vcpkg (`vcpkg install qtbase qttools:x64-windows`)            | Needed for `APITest` target                                    |
+| **OpenSSL**             | via vcpkg (`vcpkg install openssl:x64-windows`)                   | Needed by `APITest` target                                     |
+| **RS21 SDK (MOZA SDK)** | Local install                                                     | Example: `C:/Program Files (x86)/MOZA_SDK/1.0.0.7/MSVC2019-64` |
+
+---
 
 ## Build steps
 ### 1. Clone the repository
@@ -18,7 +27,7 @@ cd vcpkg
 .\bootstrap-vcpkg.bat
 cd ..
 vcpkg integrate install
-vcpkg install hidapi:x64-windows
+vcpkg install hidapi openssl qtbase qttools:x64-windows
 ```
 ### 3. Configure CMake
 From the project root:
@@ -37,23 +46,13 @@ cmake --build builds/release --config Release
 ### 5. Copy required DLLs
 (if not automatically copied by CMake post-build commands)
 
-| DLL               | Source                                                     |
-|-------------------|------------------------------------------------------------|
-| vJoyInterface.dll | From your vJoy SDK: `C:/Program Files/vJoy/SDK/lib/amd64/` |
-| hidapi.dll        | From vcpkg: `vcpkg/installed/x64-windows/bin/`             |
+| DLL               | Source                                                                         |
+|-------------------|--------------------------------------------------------------------------------|
+| vJoyInterface.dll | From your vJoy SDK: `C:/Program Files/vJoy/SDK/lib/amd64/`                     |
+| hidapi.dll        | From vcpkg: `vcpkg/installed/x64-windows/bin/`                                 |
+| MOZA_SDK.dll      | From your vJoy SDK: `C:/Program Files (x86)/MOZA_SDK/1.0.1.6/MSVC2022-64/bin/` |
 
-## Running
-- Main executable:
-```bash
-builds/debug/Moza2Joystick.exe
-builds/release/Moza2Joystick.exe
-```
-- Example test:
-```bash
-builds/debug/basic_connection_test.exe
-builds/release/basic_connection_test.exe
-```
-Run the example to confirm HID and vJoy work.
+---
 
 ## Notes for CLion Users
 

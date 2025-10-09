@@ -35,8 +35,6 @@ void VJoyOutput::update(const MozaState &state) {
     if (!m_initialized) return;
 
     // Wheel: map -32768..32767 → 0..65535
-    //long wheelVal = static_cast<long>(state.wheel / 2 + 16384);
-    //SetAxis(wheelVal, m_deviceId, HID_USAGE_X);
     SetAxis(Utils::mapToVJoyAxis(state.wheel, -32768, 32768), m_deviceId, HID_USAGE_X);
 
     // Pedals: scale 0..255 → 0..32767
