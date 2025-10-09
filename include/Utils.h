@@ -4,6 +4,15 @@
 #include <string>
 
 namespace Utils {
+
+    struct MozaState {
+        int16_t wheel;
+        uint8_t throttle;
+        uint8_t brake;
+        uint8_t clutch;
+        bool buttons[128];  // adjust if you need more buttons
+    };
+
     long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax);
 
     // Optional overload for unsigned ranges like 0..255

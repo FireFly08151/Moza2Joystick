@@ -1,6 +1,4 @@
-#define DIRECTINPUT_VERSION 0x0800
 #include <windows.h>
-#include <dinput.h>
 #include "public.h"
 #include "vjoyinterface.h"
 #include "VJoyOutput.h"
@@ -31,7 +29,7 @@ bool VJoyOutput::initialize() {
     return true;
 }
 
-void VJoyOutput::update(const MozaState &state) {
+void VJoyOutput::update(const Utils::MozaState &state) {
     if (!m_initialized) return;
 
     // Wheel: map -32768..32767 → 0..65535

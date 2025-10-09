@@ -8,7 +8,7 @@ public:
     ~VJoyOutput();
 
     bool initialize();
-    void update(const MozaState &state);
+    void update(const Utils::MozaState &state);
 
 private:
     uint8_t m_deviceId;

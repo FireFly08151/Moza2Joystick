@@ -13,8 +13,45 @@ MozaReader::~MozaReader() {
     hid_exit();
 }
 
-bool MozaReader::findDevice(unsigned short vendor_id) {
-    struct hid_device_info* devs = hid_enumerate(vendor_id, 0x0000);
+bool MozaReader::initialize() {
+    if (!findDevice()) {
+        std::cerr << "Moza device not found.\n";
+        return false;
+    }
+    if (!openDevice()) {
+        std::cerr << "Failed to open Moza device.\n";
+        return false;
+    }
+
+    std::cout << "Moza device initialized successfully.\n";
+    return true;
+}
+
+void MozaReader::update() {
+    if (!deviceHandle)
+        return;
+
+    unsigned char buffer[64];
+    if (readData(buffer)) {
+        Utils::MozaState newState = parseReport(buffer);
+
+        std::lock_guard<std::mutex> lock(stateMutex);
+        currentState = newState;
+    } else {
+        // If device fails to read, you might want to log it once
+        static int errorCount = 0;
+        if (++errorCount < 10)
+            std::cerr << "Failed to read from Moza device.\n";
+    }
+}
+
+Utils::MozaState MozaReader::getState() {
+    std::lock_guard<std::mutex> lock(stateMutex);
+    return currentState;
+}
+
+bool MozaReader::findDevice() {
+    struct hid_device_info* devs = hid_enumerate(0x346E, 0x0000);
     struct hid_device_info* cur = devs;
 
     bool found = false;
@@ -26,12 +63,10 @@ bool MozaReader::findDevice(unsigned short vendor_id) {
                    << std::endl;
 
         // Look for likely Moza base or wheel (R9, R16, etc.)
-        if (cur->vendor_id == vendor_id) {
+        if (cur->vendor_id == 13422) {
             deviceInfo = {
                     cur->manufacturer_string ? cur->manufacturer_string : L"",
                     cur->product_string ? cur->product_string : L"",
-                    cur->vendor_id,
-                    cur->product_id,
                     cur->path ? std::wstring(cur->path, cur->path + strlen(cur->path)) : L""
             };
             found = true;
@@ -69,19 +104,16 @@ void MozaReader::closeDevice() {
     }
 }
 
-bool MozaReader::readData(unsigned char* buffer, size_t length) {
-    if (!deviceHandle) return false;
-
-    int res = hid_read(deviceHandle, buffer, static_cast<size_t>(length));
+bool MozaReader::readData(unsigned char *buffer) {
+    int res = hid_read(deviceHandle, buffer, static_cast<size_t>(64));
     if (res < 0) {
         return false;
     }
     return true;
 }
 
-MozaState MozaReader::parseReport(const unsigned char *buffer, size_t length) {
-    MozaState state{};
-    if (length < 10) return state;
+Utils::MozaState MozaReader::parseReport(const unsigned char *buffer) {
+    Utils::MozaState state{};
 
     // Example mapping (update after testing)
     uint16_t rawWheel = buffer[1] | (buffer[2] << 8); // 0..65535
