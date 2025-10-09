@@ -2,15 +2,16 @@
 #include <cstdint>
 #include <mutex>
 #include "Utils.h"
+#include "IMozaDevice.h"
 
-class MozaSDK {
+class MozaSDK : public IMozaDevice{
 public:
     MozaSDK();
-    ~MozaSDK();
+    ~MozaSDK() override;
 
-    static bool initialize();
-    void update();
-    Utils::MozaState getState();
+    bool initialize() override;
+    void update() override;
+    Utils::MozaState getState() override;
 
 private:
     Utils::MozaState currentState{};

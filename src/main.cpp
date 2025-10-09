@@ -2,10 +2,14 @@
 #include <thread>
 #include "MozaSDK.h"
 #include <iostream>
+#include "IMozaDevice.h"
 
 int main() {
-    MozaSDK moza;
-    if (!moza.initialize()) {
+    // Choose implementation
+    std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaSDK>();
+    // or: std::unique_ptr<IMozaDevice> moza = std::make_unique<MozaReader>();
+
+    if (!moza->initialize()) {
         std::cerr << "Failed to initialize MOZA device\n";
         return -1;
     }
@@ -17,8 +21,8 @@ int main() {
     }
 
     while (true) {
-        moza.update();
-        Utils::MozaState state = moza.getState();
+        moza->update();
+        Utils::MozaState state = moza->getState();
 
         vjoy.update(state);
 
