@@ -31,7 +31,7 @@ bool VJoyOutput::initialize() {
     return true;
 }
 
-void VJoyOutput::update(const MozaState &state) {
+void VJoyOutput::update(const Utils::MozaState &state) const {
     if (!m_initialized) return;
 
     // Wheel: map -32768..32767 → 0..65535
@@ -43,6 +43,6 @@ void VJoyOutput::update(const MozaState &state) {
     SetAxis(state.clutch * 128, m_deviceId, HID_USAGE_Z);
 
     // Buttons
-    for (int i = 0; i < 16; ++i)
-        SetBtn(state.buttons[i] != 0, m_deviceId, i + 1);
+    for (int i = 0; i < 128; ++i)
+        SetBtn(state.buttons[i], m_deviceId, i + 1);
 }

@@ -90,6 +90,7 @@ include_directories(
         "${VJOY_SDK_DIR}/inc"
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${RS21_sdk}/include"
 )
 
 # ---------------------------------------------------------------
@@ -107,6 +108,8 @@ target_include_directories(${PROJECT_NAME}
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
+link_directories("C:/Program Files (x86)/MOZA_SDK/1.0.1.6/MSVC2022-64/lib")
+
 target_link_libraries(${PROJECT_NAME}
         PRIVATE
         hidapi::hidapi
@@ -114,6 +117,7 @@ target_link_libraries(${PROJECT_NAME}
         dinput8
         dxguid
         user32
+        "C:/Program Files (x86)/MOZA_SDK/1.0.1.6/MSVC2022-64/lib/MOZA_SDK.lib"
 )
 
 # ---------------------------------------------------------------

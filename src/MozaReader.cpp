@@ -79,8 +79,8 @@ bool MozaReader::readData(unsigned char* buffer, size_t length) {
     return true;
 }
 
-MozaState MozaReader::parseReport(const unsigned char *buffer, size_t length) {
-    MozaState state{};
+Utils::MozaState MozaReader::parseReport(const unsigned char *buffer, size_t length) {
+    Utils::MozaState state{};
     if (length < 10) return state;
 
     // Example mapping (update after testing)
