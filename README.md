@@ -11,17 +11,17 @@
 
 It reads real-time input from your devices using either:
 
-- MOZA SDK — for maximum performance and official data access
-- HIDAPI (MozaReader) — for a driver-independent fallback mode
+- [MOZA SDK](https://mozaracing.com/pages/sdk) — for maximum performance and official data access
+- [hidapi](https://github.com/libusb/hidapi) — for a driver-independent fallback mode
 
-All input is then forwarded to a **vJoy virtual controller**, so your system sees it as a regular joystick or gamepad.
+All input is then forwarded to a **[vJoy virtual controller]((https://sourceforge.net/projects/vjoystick/))**, so your system sees it as a regular joystick or gamepad.
 
 ---
 
 ## Features
 
 Dual input backends
-- SDK mode: Uses the official MOZA SDK (`mozaAPI.h`)
+- SDK mode: Uses the official MOZA SDK (`mozaAPI`)
 - HID mode: Uses raw HID data via `hidapi`
 
 vJoy output
@@ -31,8 +31,9 @@ vJoy output
 Live input forwarding
 - Wheel rotation, pedals, and buttons are mapped 1:1 to the vJoy device
 
-Modular design
-- Common interface `IMozaDevice` allows you to switch between SDK and HID readers seamlessly
+Configurable via [config](./config.json)
+- Switch between SDK and HID readers seamlessly
+- Change button mappings
 
 ---
 
@@ -45,6 +46,7 @@ Moza2Joystick/
 ├── examples/       # Sample setups or test utilities
 ├── docs/           # Documentation and protocol references
 ├── CMakeLists.txt  # Build system
+├── config.json     # Configuration file
 └── README.md
 ```
 
@@ -54,6 +56,7 @@ Moza2Joystick/
 
 1. Connect your Moza wheelbase and pedals.
 2. Launch Moza2Joystick — it will automatically detect connected Moza hardware.
+    - starts Moza Pit House automatically if set to Moza SDK in [config](./config.json)
 3. The program updates the vJoy controller with values from you hardware.
 4. Start your game and select the vJoy controller as input.
 
