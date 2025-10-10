@@ -38,7 +38,6 @@ void MozaReader::update() {
         std::lock_guard<std::mutex> lock(stateMutex);
         currentState = newState;
     } else {
-        // If device fails to read, you might want to log it once
         static int errorCount = 0;
         if (++errorCount < 10)
             std::cerr << "Failed to read from Moza device.\n";
@@ -119,8 +118,6 @@ Utils::MozaState MozaReader::parseReport(const unsigned char *buffer) {
     uint16_t rawWheel = buffer[1] | (buffer[2] << 8); // 0..65535
     auto wheel = static_cast<int16_t>(rawWheel - 32768); // -32768..32767
     state.wheel = wheel;
-    //state.wheel = static_cast<int16_t>((buffer[1] << 8) | buffer[2]);
-    //state.wheel = buffer[1] | (buffer[2] << 8);
     state.throttle = buffer[3];
     state.brake = buffer[4];
     state.clutch = buffer[5];

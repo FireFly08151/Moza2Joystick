@@ -1,3 +1,4 @@
+#define DIRECTINPUT_VERSION 0x0800
 #include "MozaSDK.h"
 #include <iostream>
 #include <cstring>
@@ -9,16 +10,14 @@ MozaSDK::MozaSDK() {
 }
 
 MozaSDK::~MozaSDK() {
-    moza::removeMozaSDK(); // uninstall SDK when program ends
+    moza::removeMozaSDK(); // terminate SDK when program ends
 }
-
 
 bool MozaSDK::initialize() {
     moza::installMozaSDK(); // initialize the SDK
 
-    // No separate device handle needed in this SDK version
-    std::cout << "MOZA SDK installed successfully.\n";
-    return true; // always succeed
+    std::cout << "MOZA SDK initialized successfully.\n";
+    return true;
 }
 
 

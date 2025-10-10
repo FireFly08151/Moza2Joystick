@@ -1,19 +1,56 @@
 {
   "backend": {
-    "selected": "hidapi",
+    "selected": "MOZA_SDK",
     "available": ["MOZA_SDK", "hidapi"]
   },
   "vJoy": {
-    "device_id": 1,
+    "available_axis_mappings": ["Brake", "Throttle", "Clutch", "Wheel", "None"],
     "axis_mappings": {
-      "X": "LeftStickX",
-      "Y": "LeftStickY",
-      "Z": "Throttle"
+      "Rx": {
+        "inverted": false,
+        "source": "Throttle"
+      },
+      "Ry": {
+        "inverted": false,
+        "source": "None"
+      },
+      "Rz": {
+        "inverted": false,
+        "source": "None"
+      },
+      "Sl0": {
+        "inverted": false,
+        "source": "Brake"
+      },
+      "Sl1": {
+        "inverted": false,
+        "source": "Throttle"
+      },
+      "X": {
+        "inverted": false,
+        "source": "Wheel"
+      },
+      "Y": {
+        "inverted": false,
+        "source": "Clutch"
+      },
+      "Z": {
+        "inverted": false,
+        "source": "Brake"
+      }
     },
     "button_mappings": {
-      "Fire": 1,
-      "Jump": 2,
-      "Menu": 3
-    }
+      "A": 1,
+      "B": 2,
+      "Back": 7,
+      "LB": 5,
+      "LS": 9,
+      "RB": 6,
+      "RS": 10,
+      "Start": 8,
+      "X": 3,
+      "Y": 4
+    },
+    "device_id": 1
   }
 }

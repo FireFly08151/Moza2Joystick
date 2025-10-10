@@ -15,21 +15,33 @@ namespace Utils {
         uint8_t throttle;
         uint8_t brake;
         uint8_t clutch;
-        bool buttons[128];  // adjust if you need more buttons
+        bool buttons[128];
+    };
+
+    struct AxisMapping {
+        std::string source; // e.g. "Wheel", "Throttle", "Brake", "Clutch", "None"
+        bool inverted = false;
     };
 
     struct Config {
-        std::string backend = "MOZA_SDK"; // default backend
+        std::string backend = "MOZA_SDK";
         int vjoyDeviceId = 1;
-        std::map<std::string, std::string> axisMappings = {
-                {"X", "LeftStickX"},
-                {"Y", "LeftStickY"},
-                {"Z", "Throttle"}
+
+        std::map<std::string, Utils::AxisMapping> axisMappings = {
+                {"X",   {"Wheel",    false}},
+                {"Y",   {"Clutch",   false}},
+                {"Z",   {"Brake",    false}},
+                {"Rx",  {"Throttle", false}},
+                {"Ry",  {"None",     false}},
+                {"Rz",  {"None",     false}},
+                {"Sl0", {"Brake",    true}},
+                {"Sl1", {"Throttle", true}}
         };
+
         std::map<std::string, int> buttonMappings = {
-                {"Fire", 1},
-                {"Jump", 2},
-                {"Menu", 3}
+                {"A", 1}, {"B", 2}, {"X", 3}, {"Y", 4},
+                {"LB", 5}, {"RB", 6}, {"Back", 7}, {"Start", 8},
+                {"LS", 9}, {"RS", 10}
         };
     };
 
@@ -37,11 +49,9 @@ namespace Utils {
 
     void saveConfig(const Config& cfg, const std::string& filename);
 
-    void mergeJson(json& target, const json& defaults);
-
     void printConfig(const Config& $cfg);
 
-    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax);
+    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted = false);
 
     // Optional overload for unsigned ranges like 0..255
     inline long mapToVJoyAxis(uint8_t value) {

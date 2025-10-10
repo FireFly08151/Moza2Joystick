@@ -27,22 +27,67 @@ bool VJoyOutput::initialize() {
         return false;
     }
 
+    const LONG neutral = 16384;
+
+    SetAxis(neutral, m_deviceId, HID_USAGE_X);
+    SetAxis(neutral, m_deviceId, HID_USAGE_Y);
+    SetAxis(neutral, m_deviceId, HID_USAGE_Z);
+    SetAxis(neutral, m_deviceId, HID_USAGE_RX);
+    SetAxis(neutral, m_deviceId, HID_USAGE_RY);
+    SetAxis(neutral, m_deviceId, HID_USAGE_RZ);
+    SetAxis(neutral, m_deviceId, HID_USAGE_SL0);
+    SetAxis(neutral, m_deviceId, HID_USAGE_SL1);
+
     m_initialized = true;
     return true;
 }
 
-void VJoyOutput::update(const Utils::MozaState &state) const {
+void VJoyOutput::update(const Utils::MozaState &state, const Utils::Config &config) const {
     if (!m_initialized) return;
 
-    // Wheel: map -32768..32767 → 0..65535
-    SetAxis(Utils::mapToVJoyAxis(state.wheel, -32768, 32768), m_deviceId, HID_USAGE_X);
+    const int deviceId = config.vjoyDeviceId;
 
-    // Pedals: scale 0..255 → 0..32767
-    SetAxis(state.throttle * 128, m_deviceId, HID_USAGE_RZ);
-    SetAxis(state.brake * 128, m_deviceId, HID_USAGE_Y);
-    SetAxis(state.clutch * 128, m_deviceId, HID_USAGE_Z);
+    auto mapAxisValue = [&](const std::string &src, bool inverted) -> LONG {
+        int32_t inMin, inMax, raw;
+
+        if (src == "Wheel") {
+            inMin = -32768; inMax = 32767;
+            raw = state.wheel;
+        } else if (src == "Throttle") {
+            inMin = 0; inMax = 255;
+            raw = state.throttle;
+        } else if (src == "Brake") {
+            inMin = 0; inMax = 255;
+            raw = state.brake;
+        } else if (src == "Clutch") {
+            inMin = 0; inMax = 255;
+            raw = state.clutch;
+        } else {
+            return 16384; // neutral midpoint for unhandled/unused
+        }
+        return Utils::mapToVJoyAxis(raw, inMin, inMax, inverted);
+    };
+
+    for (const auto &[axisName, mapping] : config.axisMappings) {
+        if (mapping.source == "None")
+            continue; // Skip unassigned axes entirely
+
+        LONG value = mapAxisValue(mapping.source, mapping.inverted);
+
+        if (axisName == "X")      SetAxis(value, deviceId, HID_USAGE_X);
+        else if (axisName == "Y") SetAxis(value, deviceId, HID_USAGE_Y);
+        else if (axisName == "Z") SetAxis(value, deviceId, HID_USAGE_Z);
+        else if (axisName == "Rx") SetAxis(value, deviceId, HID_USAGE_RX);
+        else if (axisName == "Ry") SetAxis(value, deviceId, HID_USAGE_RY);
+        else if (axisName == "Rz") SetAxis(value, deviceId, HID_USAGE_RZ);
+        else if (axisName == "Sl0") SetAxis(value, deviceId, HID_USAGE_SL0);
+        else if (axisName == "Sl1") SetAxis(value, deviceId, HID_USAGE_SL1);
+    }
 
     // Buttons
-    for (int i = 0; i < 128; ++i)
-        SetBtn(state.buttons[i], m_deviceId, i + 1);
+    for (const auto &[name, index] : config.buttonMappings) {
+        int btnIndex = index - 1;
+        if (btnIndex >= 0 && btnIndex < 128)
+            SetBtn(state.buttons[btnIndex], deviceId, index);
+    }
 }

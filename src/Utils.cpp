@@ -5,6 +5,27 @@ namespace Utils {
 
     using json = nlohmann::json;
 
+
+    // Tell nlohmann::json how to serialize AxisMapping
+    inline void to_json(nlohmann::json &j, const AxisMapping &a) {
+        j = nlohmann::json{{"source", a.source}, {"inverted", a.inverted}};
+    }
+
+    // Tell nlohmann::json how to deserialize AxisMapping
+    inline void from_json(const nlohmann::json &j, AxisMapping &a) {
+        j.at("source").get_to(a.source);
+        if (j.contains("inverted"))
+            j.at("inverted").get_to(a.inverted);
+        else
+            a.inverted = false;
+    }
+
+    // Needed to print AxisMapping
+    inline std::ostream& operator<<(std::ostream &os, const AxisMapping &m) {
+        os << m.source << (m.inverted ? " (inverted)" : "");
+        return os;
+    }
+
     Config loadConfig(const std::string& filename) {
 
         Config cfg;
@@ -30,9 +51,11 @@ namespace Utils {
                 if (j["vJoy"].contains("device_id"))
                     cfg.vjoyDeviceId = j["vJoy"]["device_id"].get<int>();
 
-                if (j["vJoy"].contains("axis_mappings"))
-                    for (auto& [axis, mapping] : j["vJoy"]["axis_mappings"].items())
-                        cfg.axisMappings[axis] = mapping.get<std::string>();
+                if (j["vJoy"].contains("axis_mappings")) {
+                    for (auto& [axis, mapping] : j["vJoy"]["axis_mappings"].items()) {
+                        cfg.axisMappings[axis] = mapping.get<Utils::AxisMapping>();
+                    }
+                }
 
                 if (j["vJoy"].contains("button_mappings"))
                     for (auto& [action, button] : j["vJoy"]["button_mappings"].items())
@@ -62,7 +85,6 @@ namespace Utils {
         file << std::setw(4) << j << std::endl;
     }
 
-
     void printConfig(const Config& $cfg) {
         std::cout << "Selected backend: " << $cfg.backend << "\n";
         std::cout << "vJoy device ID: " << $cfg.vjoyDeviceId << "\n";
@@ -76,11 +98,12 @@ namespace Utils {
             std::cout << "  " << action << " -> " << button << "\n";
     }
 
-    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax) {
+    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted) {
         if (value < inMin) value = inMin;
         if (value > inMax) value = inMax;
-        // Scale to -32768..0
-        return static_cast<long>((inMax - value) * (-32768.0 / (inMax - inMin)) + 32768);
+        // Scale to 0..32768
+        double scaled = ((inMax - value) * (-32768.0 / (inMax - inMin)) + 32768);
+        return static_cast<long>(inverted ? 32768.0-scaled : scaled);
     }
 
     std::string wstringToUtf8(const std::wstring &wstr) {
