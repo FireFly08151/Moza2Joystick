@@ -31,9 +31,9 @@ int main() {
                   << " Clutch: " << std::setw(3) << static_cast<int>(state.clutch)
                   << " Buttons: ";
 
-        for (int i = 0; i < 16; ++i) {
+        for (int i = 0; i < 50; ++i) {
             std::cout << (state.buttons[i] ? '1' : '0');
-            if (i < 15) std::cout << ' ';
+            if (i < 49) std::cout << ' ';
         }
 
         std::cout << "    " << std::flush;
