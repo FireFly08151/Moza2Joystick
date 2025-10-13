@@ -31,10 +31,15 @@ void MozaSDK::update() {
         return;
     }
 
-    newState.wheel = static_cast<int16_t>(d->steeringWheelAxle - 32768);
-    newState.throttle = d->throttle;
-    newState.brake    = d->brake;
-    newState.clutch   = d->clutch;
+    newState.wheel           = (int16_t)(d->steeringWheelAxle ^ 0x8000);
+    newState.clutchCombined  = d->clutchSynthesisShaft;
+    newState.clutchLeft      = d->clutchIndependentShaftL;
+    newState.clutchRight     = d->clutchIndependentShaftR;
+    newState.throttle        = d->throttle;
+    newState.clutch          = d->clutch;
+    newState.brake           = d->brake;
+    newState.handbrake       = d->handbrake;
+    newState.buttonHandbrake = d->buttonHandbrake;
 
     for (int i = 0; i < 128; ++i) {
         newState.buttons[i] = d->buttons[i].isPressed();

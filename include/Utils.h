@@ -12,14 +12,23 @@ namespace Utils {
 
     struct MozaState {
         int16_t wheel;
-        uint8_t throttle;
-        uint8_t brake;
-        uint8_t clutch;
+        int16_t clutchCombined;
+        int16_t clutchLeft;
+        int16_t clutchRight;
+        int16_t throttle;
+        int16_t clutch;
+        int16_t brake;
+        int16_t handbrake;
+        // I don't know how to handle this right now, it might already be included in buttons
+        bool buttonHandbrake;
+        // ToDo implement shifter (activate button on up-/downshift)
         bool buttons[128];
     };
 
     struct AxisMapping {
-        std::string source; // e.g. "Wheel", "Throttle", "Brake", "Clutch", "None"
+        // "Wheel", "ClutchCombined", "ClutchLeft", "ClutchRight",
+        // "Throttle", "Clutch", "Brake", "Handbrake", "None"
+        std::string source;
         bool inverted = false;
     };
 
@@ -29,13 +38,13 @@ namespace Utils {
 
         std::map<std::string, Utils::AxisMapping> axisMappings = {
                 {"X",   {"Wheel",    false}},
-                {"Y",   {"Clutch",   false}},
+                {"Y",   {"Throttle",   false}},
                 {"Z",   {"Brake",    false}},
-                {"Rx",  {"Throttle", false}},
-                {"Ry",  {"None",     false}},
-                {"Rz",  {"None",     false}},
-                {"Sl0", {"Brake",    true}},
-                {"Sl1", {"Throttle", true}}
+                {"Rx",  {"ClutchCombined", false}},
+                {"Ry",  {"Clutch",     false}},
+                {"Rz",  {"Handbrake",     false}},
+                {"Sl0", {"ClutchLeft",    false}},
+                {"Sl1", {"ClutchRight", false}}
         };
 
         std::map<std::string, int> buttonMappings = {
@@ -177,12 +186,9 @@ namespace Utils {
 
     void printConfig(const Config& $cfg);
 
-    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted = false);
+    void printMozaState(MozaState $state);
 
-    // Optional overload for unsigned ranges like 0..255
-    inline long mapToVJoyAxis(uint8_t value) {
-        return static_cast<int32_t>(value * 128 - 32768); // 0..255 → -32768..0
-    }
+    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted = false);
 
     std::string wstringToUtf8(const std::wstring& wstr);
 }

@@ -21,22 +21,12 @@ int main() {
 
     while (true) {
         moza->update();
+
         Utils::MozaState state = moza->getState();
 
         vjoy.update(state, cfg);
 
-        std::cout << "\rWheel: " << std::setw(6) << std::setfill(' ') << state.wheel
-                  << " Throttle: " << std::setw(3) << static_cast<int>(state.throttle)
-                  << " Brake: " << std::setw(3) << static_cast<int>(state.brake)
-                  << " Clutch: " << std::setw(3) << static_cast<int>(state.clutch)
-                  << " Buttons: ";
-
-        for (int i = 0; i < 50; ++i) {
-            std::cout << (state.buttons[i] ? '1' : '0');
-            if (i < 49) std::cout << ' ';
-        }
-
-        std::cout << "    " << std::flush;
+        Utils::printMozaState(state);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }

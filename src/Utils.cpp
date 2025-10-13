@@ -98,6 +98,21 @@ namespace Utils {
             std::cout << "  " << action << " -> " << button << "\n";
     }
 
+    void printMozaState(const MozaState $state) {
+        std::cout << "\rWheel: " << std::setw(6) << std::setfill(' ') << $state.wheel
+                  << " Throttle: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.throttle)
+                  << " Brake: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.brake)
+                  << " Clutch: " << std::setw(6) << std::setfill(' ') << static_cast<int>($state.clutchCombined)
+                  << " Buttons: ";
+
+        for (int i = 0; i < 50; ++i) {
+            std::cout << ($state.buttons[i] ? '1' : '0');
+            if (i < 49) std::cout << ' ';
+        }
+
+        std::cout << "    " << std::flush;
+    }
+
     long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted) {
         if (value < inMin) value = inMin;
         if (value > inMax) value = inMax;

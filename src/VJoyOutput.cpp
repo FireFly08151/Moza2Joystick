@@ -48,22 +48,28 @@ void VJoyOutput::update(const Utils::MozaState &state, const Utils::Config &conf
     const int deviceId = config.vjoyDeviceId;
 
     auto mapAxisValue = [&](const std::string &src, bool inverted) -> LONG {
-        int32_t inMin, inMax, raw;
-
+        int32_t inMin = -32768, inMax = 32767, raw = 0;
+        // ToDo update readme: when Moza SDK is used either ClutchCombined (Axis-Combine) or
+        //  ClutchLeft/Right (Axis-Split) works, depending on the setting in Moza Pit House
+        // ToDo solution for D-Pad (maybe set button mode on startup)
         if (src == "Wheel") {
-            inMin = -32768; inMax = 32767;
             raw = state.wheel;
+        } else if (src == "ClutchCombined") {
+            raw = state.clutchCombined;
+        } else if (src == "ClutchLeft") {
+            raw = state.clutchLeft;
+        } else if (src == "ClutchRight") {
+            raw = state.clutchRight;
         } else if (src == "Throttle") {
-            inMin = 0; inMax = 255;
             raw = state.throttle;
-        } else if (src == "Brake") {
-            inMin = 0; inMax = 255;
-            raw = state.brake;
         } else if (src == "Clutch") {
-            inMin = 0; inMax = 255;
             raw = state.clutch;
+        } else if (src == "Brake") {
+            raw = state.brake;
+        } else if (src == "Handbrake") {
+            raw = state.handbrake;
         } else {
-            return 16384; // neutral midpoint for unhandled/unused
+            return raw; // neutral midpoint for unhandled/unused
         }
         return Utils::mapToVJoyAxis(raw, inMin, inMax, inverted);
     };
