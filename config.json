@@ -1,6 +1,6 @@
 {
   "backend": {
-    "selected": "MOZA_SDK",
+    "selected": "hidapi",
     "available": ["MOZA_SDK", "hidapi"]
   },
   "vJoy": {

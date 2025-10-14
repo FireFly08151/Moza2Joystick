@@ -49,7 +49,6 @@ void MozaSDK::update() {
     currentState = newState;
 }
 
-
 Utils::MozaState MozaSDK::getState() {
     std::lock_guard<std::mutex> lock(stateMutex);
     return currentState;

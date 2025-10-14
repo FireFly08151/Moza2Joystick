@@ -3,6 +3,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#ifdef _WIN32
+#include <locale>
+#include <codecvt>
+#endif
 
 MozaReader::MozaReader() {
     hid_init();
@@ -31,7 +35,9 @@ void MozaReader::update() {
     if (!deviceHandle)
         return;
 
-    unsigned char buffer[64];
+    unsigned char buffer[48];
+
+
     if (readData(buffer)) {
         Utils::MozaState newState = parseReport(buffer);
 
@@ -50,19 +56,22 @@ Utils::MozaState MozaReader::getState() {
 }
 
 bool MozaReader::findDevice() {
-    struct hid_device_info* devs = hid_enumerate(0x346E, 0x0000);
+    struct hid_device_info* devs = hid_enumerate(0x346E, 0x0000); // Moza vendor ID
     struct hid_device_info* cur = devs;
 
     bool found = false;
     while (cur) {
-        std::wcout << L"Found device: " << cur->manufacturer_string
-                   << L" | " << cur->product_string
-                   << L" | VID: " << std::hex << cur->vendor_id
-                   << L" | PID: " << cur->product_id
+        std::wcout << L"Found device:\n"
+                   << L"  Manufacturer : " << (cur->manufacturer_string ? cur->manufacturer_string : L"(unknown)") << L"\n"
+                   << L"  Product      : " << (cur->product_string ? cur->product_string : L"(unknown)") << L"\n"
+                   << L"  VID:PID      : " << std::hex << std::setw(4) << std::setfill(L'0')
+                   << cur->vendor_id << L":" << cur->product_id << std::dec << L"\n"
+                   << L"  Interface #  : " << cur->interface_number << L"\n"
+                   << L"  Path         : " << (cur->path ? cur->path : "(no path)") << L"\n"
                    << std::endl;
 
-        // Look for likely Moza base or wheel (R9, R16, etc.)
-        if (cur->vendor_id == 13422) {
+        // Look for likely Moza base (R9, R12, etc.)
+        if (cur->vendor_id == 0x346E) { // 13422 decimal
             deviceInfo = {
                     cur->manufacturer_string ? cur->manufacturer_string : L"",
                     cur->product_string ? cur->product_string : L"",
@@ -71,6 +80,7 @@ bool MozaReader::findDevice() {
             found = true;
             break;
         }
+
         cur = cur->next;
     }
 
@@ -103,28 +113,104 @@ void MozaReader::closeDevice() {
     }
 }
 
+// prints byte in binary (8 bits)
+static std::string byte_to_bits(unsigned char b) {
+    std::string s;
+    for (int i = 0; i < 8; ++i) {
+        s.push_back((b & (1 << i)) ? '1' : '0');
+    }
+    return s;
+}
+
 bool MozaReader::readData(unsigned char *buffer) {
-    int res = hid_read(deviceHandle, buffer, static_cast<size_t>(64));
-    if (res < 0) {
+    const size_t bufferSize = 48;
+    std::fill(buffer, buffer + bufferSize, 0);
+
+    int totalBytes = 0;
+
+    // Keep reading until buffer is full or no more data is available
+    while (totalBytes < static_cast<int>(bufferSize)) {
+        int res = hid_read(deviceHandle, buffer + totalBytes, bufferSize - totalBytes);
+        if (res < 0) {
+#ifdef _WIN32
+            std::wstring ws(hid_error(deviceHandle));
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+            std::cerr << "Error reading HID device: " << conv.to_bytes(ws) << "\n";
+#else
+            std::cerr << "Error reading HID device: " << hid_error(deviceHandle) << "\n";
+#endif
+            return false;
+        } else if (res == 0) {
+            // No more data available right now
+            break;
+        }
+        totalBytes += res;
+    }
+
+    if (totalBytes == 0) {
+        // Nothing read
         return false;
     }
+
     return true;
 }
 
 Utils::MozaState MozaReader::parseReport(const unsigned char *buffer) {
+
     Utils::MozaState state{};
 
-    // Example mapping (update after testing)
-    uint16_t rawWheel = buffer[1] | (buffer[2] << 8); // 0..65535
-    auto wheel = static_cast<int16_t>(rawWheel - 32768); // -32768..32767
-    state.wheel = wheel;
-    state.throttle = buffer[3];
-    state.brake = buffer[4];
-    state.clutch = buffer[5];
+    state.wheel = static_cast<int16_t>((buffer[1] | (buffer[2] << 8)) ^ 0x8000);
+    state.clutchCombined = static_cast<int16_t>((buffer[3] | (buffer[4] << 8)));
+    state.clutchRight = static_cast<int16_t>((buffer[7] | (buffer[8] << 8)));
+    state.clutchLeft = static_cast<int16_t>((buffer[9] | (buffer[10] << 8)));
 
-    uint16_t btnBits = buffer[6] | (buffer[7] << 8);
-    for (int i = 0; i < 16; ++i)
-        state.buttons[i] = (btnBits >> i) & 0x1;
+    // TODO: map throttle, brake, handbrake, clutch if known later
+    state.throttle = 0;
+    state.brake = 0;
+    state.handbrake = 0;
+    state.clutch = 0;
+    state.buttonHandbrake = false;
+
+    // --- Map buttons ---
+    int buttonIndex = 0;
+    for (int byteIdx = 17; byteIdx <= 32 && buttonIndex < 128; ++byteIdx) {
+        for (int bit = 0; bit < 8 && buttonIndex < 128; ++bit) {
+            if (byteIdx == 17 && bit < 3) continue;
+
+            state.buttons[buttonIndex] = (buffer[byteIdx] & (1 << bit)) != 0;
+            ++buttonIndex;
+        }
+    }
+    DPad d = MozaReader::parse_dpad(buffer[17]);
+    // map buttons to D-Pad in case D-Pad mode was activated in Moza Pit House
+    state.buttons[5] |= d.up;
+    state.buttons[6] |= d.right;
+    state.buttons[7] |= d.down;
+    state.buttons[8] |= d.left;
+    // map buttons 15 & 16 to clutchLeft and clutchRight when fully pressed
+    state.buttons[15] |= state.clutchLeft >= 32760;
+    state.buttons[16] |= state.clutchRight >= 32760;
 
     return state;
+}
+
+DPad MozaReader::parse_dpad(unsigned char b) {
+    b &= 0xF; // keep only 4 bits
+
+    // bit n in each mask corresponds to direction active when b == n
+    constexpr unsigned short UP_MASK    = (1 << 0x0) | (1 << 0x7) | (1 << 0x1);
+    constexpr unsigned short DOWN_MASK  = (1 << 0x4) | (1 << 0x3) | (1 << 0x5);
+    constexpr unsigned short LEFT_MASK  = (1 << 0x6) | (1 << 0x7) | (1 << 0x5);
+    constexpr unsigned short RIGHT_MASK = (1 << 0x2) | (1 << 0x1) | (1 << 0x3);
+
+    DPad d;
+
+    unsigned short bit = 1 << b;
+
+    d.up    = (UP_MASK    & bit) != 0;
+    d.down  = (DOWN_MASK  & bit) != 0;
+    d.left  = (LEFT_MASK  & bit) != 0;
+    d.right = (RIGHT_MASK & bit) != 0;
+
+    return d;
 }
