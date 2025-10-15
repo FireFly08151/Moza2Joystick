@@ -45,6 +45,10 @@ void MozaSDK::update() {
         newState.buttons[i] = d->buttons[i].isPressed();
     }
 
+    // map buttons 15 & 16 to clutchLeft and clutchRight when fully pressed
+    newState.buttons[15] |= newState.clutchLeft >= 32760;
+    newState.buttons[16] |= newState.clutchRight >= 32760;
+
     std::lock_guard<std::mutex> lock(stateMutex);
     currentState = newState;
 }
