@@ -49,7 +49,7 @@ namespace Utils {
             // vJoy
             if (j.contains("vJoy")) {
                 if (j["vJoy"].contains("device_id"))
-                    cfg.vjoyDeviceId = j["vJoy"]["device_id"].get<int>();
+                    cfg.vJoyDeviceId = j["vJoy"]["device_id"].get<int>();
 
                 if (j["vJoy"].contains("axis_mappings")) {
                     for (auto& [axis, mapping] : j["vJoy"]["axis_mappings"].items()) {
@@ -77,7 +77,7 @@ namespace Utils {
     void saveConfig(const Config &cfg, const std::string &filename) {
         json j;
         j["backend"]["selected"] = cfg.backend;
-        j["vJoy"]["device_id"] = cfg.vjoyDeviceId;
+        j["vJoy"]["device_id"] = cfg.vJoyDeviceId;
         j["vJoy"]["axis_mappings"] = cfg.axisMappings;
         j["vJoy"]["button_mappings"] = cfg.buttonMappings;
 
@@ -87,7 +87,7 @@ namespace Utils {
 
     void printConfig(const Config& $cfg) {
         std::cout << "Selected backend: " << $cfg.backend << "\n";
-        std::cout << "vJoy device ID: " << $cfg.vjoyDeviceId << "\n";
+        std::cout << "vJoy device ID: " << $cfg.vJoyDeviceId << "\n";
 
         std::cout << "Axis mappings:\n";
         for (auto& [axis, mapping] : $cfg.axisMappings)
@@ -96,6 +96,21 @@ namespace Utils {
         std::cout << "Button mappings:\n";
         for (auto& [action, button] : $cfg.buttonMappings)
             std::cout << "  " << action << " -> " << button << "\n";
+    }
+
+    void printMozaState(const MozaState $state) {
+        std::cout << "\rWheel: " << std::setw(6) << std::setfill(' ') << $state.wheel
+                  << " Throttle: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.throttle)
+                  << " Brake: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.brake)
+                  << " Clutch: " << std::setw(6) << std::setfill(' ') << static_cast<int>($state.clutchCombined)
+                  << " Buttons: ";
+
+        for (int i = 0; i < 50; ++i) {
+            std::cout << ($state.buttons[i] ? '1' : '0');
+            if (i < 49) std::cout << ' ';
+        }
+
+        std::cout << "    " << std::flush;
     }
 
     long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted) {

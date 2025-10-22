@@ -12,6 +12,13 @@ struct MozaDeviceInfo {
     std::wstring path;
 };
 
+struct DPad {
+    bool up = false;
+    bool down = false;
+    bool left = false;
+    bool right = false;
+};
+
 class MozaReader : public IMozaDevice {
 public:
     MozaReader();
@@ -25,11 +32,12 @@ private:
     hid_device* deviceHandle = nullptr;
     MozaDeviceInfo deviceInfo;
 
-    bool findDevice();  // Moza's VID
+    bool findDevice();
     bool openDevice();
     void closeDevice();
     bool readData(unsigned char *buffer);
     static Utils::MozaState parseReport(const unsigned char *buffer);
+    static DPad parse_dpad(unsigned char b);
 
     Utils::MozaState currentState{};
     std::mutex stateMutex;
