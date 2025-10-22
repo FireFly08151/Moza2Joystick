@@ -11,8 +11,8 @@
 
 It reads real-time input from your devices using either:
 
-- [MOZA SDK](https://mozaracing.com/pages/sdk) — for maximum performance and official data access
-- [hidapi](https://github.com/libusb/hidapi) — for a driver-independent fallback mode
+- [MOZA SDK](https://mozaracing.com/pages/sdk) - for official data access
+- [hidapi](https://github.com/libusb/hidapi) - for independence from Moza Pit House
 
 All input is then forwarded to a **[vJoy virtual controller]((https://sourceforge.net/projects/vjoystick/))**, so your system sees it as a regular joystick or gamepad.
 
@@ -54,11 +54,25 @@ Moza2Joystick/
 
 ## Usage
 
-1. Connect your Moza wheelbase and pedals.
+1. Connect your base to the computer and the remaining devices such as pedals and handbrake to the base.
 2. Launch Moza2Joystick — it will automatically detect connected Moza hardware.
-    - starts Moza Pit House automatically if set to Moza SDK in [config](./config.json)
+   - starts Moza Pit House automatically if set to Moza SDK in [config](./config.json)
 3. The program updates the vJoy controller with values from you hardware.
 4. Start your game and select the vJoy controller as input.
+   - if you can't change the mappings in-game just remap the controls in the [config](./config.json)-file
+
+---
+
+## Important Notes
+- Your hardware needs to be calibrated using [MOZA Pit House](https://mozaracing.com/pages/pit-house)
+- The shifter won't work (<mark>ToDo</mark>: I don't own one so i haven't implemented any logic yet)
+### hidapi-Mode
+- The handbrake might not be working as expected due to me not owning one (<mark>ToDo</mark>: make a small python-script to capture input from someone with a handbrake)
+### SDK-Mode
+- Make sure to set `Stick Mode` to `Button` in Moza Pit House (<mark>ToDo</mark>: or just enable automatic switch in the [config](./config.json)-file)
+   > Joysticks in D-Pad-Mode don't get exposed in the SDK
+- Set `Dual Clutch Paddle Mode` either to `Axis-Combine` or `Axis-Split` (<mark>ToDo</mark>: or just enable automatic selection in the [config](./config.json)-file)
+   > `Axis-Combine` does not enable buttons 15 & 16 (shifter buttons), `Axis-Split` does.
 
 ---
 
@@ -70,6 +84,6 @@ See the [License](./LICENSE) file for details
 ---
 
 ## Credits
+- hidapi developers — for the cross-platform HID access library
 - Moza Racing — for their SDK
 - vJoy Project — for the virtual joystick driver
-- hidapi developers — for the cross-platform HID access library
