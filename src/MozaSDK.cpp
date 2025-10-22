@@ -31,6 +31,10 @@ void MozaSDK::update() {
         return;
     }
 
+    // ToDo either ClutchCombined (Axis-Combine) or ClutchLeft/Right (Axis-Split) works,
+    //  depending on the setting in Moza Pit House (set shifter mode on startup -> config)
+    // ToDo solution for D-Pad (set button mode on startup -> config)
+
     newState.wheel           = (int16_t)(d->steeringWheelAxle ^ 0x8000);
     newState.clutchCombined  = d->clutchSynthesisShaft;
     newState.clutchLeft      = d->clutchIndependentShaftL;

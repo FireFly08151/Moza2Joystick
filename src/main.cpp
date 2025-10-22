@@ -13,7 +13,7 @@ int main() {
         return -1;
     }
 
-    VJoyOutput vjoy(cfg.vjoyDeviceId);
+    VJoyOutput vjoy(cfg.vJoyDeviceId);
     if (!vjoy.initialize()) {
         std::cerr << "Failed to initialize vJoy device!\n";
         return 1;

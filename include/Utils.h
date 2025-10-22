@@ -34,7 +34,7 @@ namespace Utils {
 
     struct Config {
         std::string backend = "MOZA_SDK";
-        int vjoyDeviceId = 1;
+        int vJoyDeviceId = 1;
 
         std::map<std::string, Utils::AxisMapping> axisMappings = {
                 {"X",   {"Wheel",    false}},

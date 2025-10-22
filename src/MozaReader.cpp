@@ -155,20 +155,42 @@ bool MozaReader::readData(unsigned char *buffer) {
     return true;
 }
 
+/**
+ * @brief Parses data from buffer into Utils::MozaState
+ * @param buffer - raw HID data
+ * @return struct containing the parsed data
+ */
+ /* bytes:
+  *  0    ?state?
+  *  1, 2 wheel
+  *  3, 4 clutchCombined
+  *  5, 6 throttle
+  *  7, 8 clutchRight
+  *  9,10 clutchLeft
+  * 11,12 brake
+  * 13,14 ?handbrake?
+  * 15,16 clutch
+  * 17-32 dPad, buttons
+  * 33    ?shifter & buttonHandbrake?
+  * 34-41 steering velocity & accel
+  */
 Utils::MozaState MozaReader::parseReport(const unsigned char *buffer) {
 
     Utils::MozaState state{};
+
+    /*printf("\rbuffer: ");
+    for (size_t i = 0; i < 42; i++) {
+        printf("%02X ", buffer[i]);
+    }*/
 
     state.wheel = static_cast<int16_t>((buffer[1] | (buffer[2] << 8)) ^ 0x8000);
     state.clutchCombined = static_cast<int16_t>((buffer[3] | (buffer[4] << 8)));
     state.clutchRight = static_cast<int16_t>((buffer[7] | (buffer[8] << 8)));
     state.clutchLeft = static_cast<int16_t>((buffer[9] | (buffer[10] << 8)));
-
-    // TODO: map throttle, brake, handbrake, clutch if known later
-    state.throttle = 0;
-    state.brake = 0;
-    state.handbrake = 0;
-    state.clutch = 0;
+    state.throttle = static_cast<int16_t>((buffer[5] | (buffer[6] << 8)));
+    state.clutch = static_cast<int16_t>((buffer[15] | (buffer[16] << 8)));
+    state.brake = static_cast<int16_t>((buffer[11] | (buffer[12] << 8)));
+    state.handbrake = static_cast<int16_t>((buffer[13] | (buffer[14] << 8)));
     state.buttonHandbrake = false;
 
     // --- Map buttons ---

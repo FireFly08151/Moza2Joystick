@@ -49,7 +49,7 @@ namespace Utils {
             // vJoy
             if (j.contains("vJoy")) {
                 if (j["vJoy"].contains("device_id"))
-                    cfg.vjoyDeviceId = j["vJoy"]["device_id"].get<int>();
+                    cfg.vJoyDeviceId = j["vJoy"]["device_id"].get<int>();
 
                 if (j["vJoy"].contains("axis_mappings")) {
                     for (auto& [axis, mapping] : j["vJoy"]["axis_mappings"].items()) {
@@ -77,7 +77,7 @@ namespace Utils {
     void saveConfig(const Config &cfg, const std::string &filename) {
         json j;
         j["backend"]["selected"] = cfg.backend;
-        j["vJoy"]["device_id"] = cfg.vjoyDeviceId;
+        j["vJoy"]["device_id"] = cfg.vJoyDeviceId;
         j["vJoy"]["axis_mappings"] = cfg.axisMappings;
         j["vJoy"]["button_mappings"] = cfg.buttonMappings;
 
@@ -87,7 +87,7 @@ namespace Utils {
 
     void printConfig(const Config& $cfg) {
         std::cout << "Selected backend: " << $cfg.backend << "\n";
-        std::cout << "vJoy device ID: " << $cfg.vjoyDeviceId << "\n";
+        std::cout << "vJoy device ID: " << $cfg.vJoyDeviceId << "\n";
 
         std::cout << "Axis mappings:\n";
         for (auto& [axis, mapping] : $cfg.axisMappings)
