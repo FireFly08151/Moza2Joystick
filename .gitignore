@@ -39,3 +39,23 @@
 
 # debug information files
 *.dwo
+
+# ---- CMake / build artifacts ----
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+builds/
+Makefile
+*.cmake
+*.ninja
+*.vcxproj*
+*.sln
+*.suo
+*.user
+*.ipch
+*.exp
+
+# ---- CLion / IDE files ----
+.idea/
+*.iml
+*.iws
