@@ -46,6 +46,32 @@ namespace Utils {
             if (j.contains("backend") && j["backend"].contains("selected"))
                 cfg.backend = j["backend"]["selected"].get<std::string>();
 
+            if (j.contains("stickdeadzone"))
+                cfg.stickdeadzone = j["stickdeadzone"].get<int>();
+
+            // ViGEm
+            if (j.contains("ViGEm")) {
+                const auto& v = j["ViGEm"];
+
+                // Axis mappings
+                if (v.contains("axis_mappings")) {
+                    for (auto& [axis, mapping] : v["axis_mappings"].items()) {
+                        cfg.ViGEmAxisMappings[axis] = mapping.get<Utils::AxisMapping>();
+                    }
+                }
+
+                // Button mappings (handles "None" and missing)
+                if (v.contains("button_mappings")) {
+                    for (auto& [action, button] : v["button_mappings"].items()) {
+                        if (button.is_number_integer()) {
+                            cfg.ViGEmButtonMappings[action] = button.get<int>();
+                        } else {
+                            cfg.ViGEmButtonMappings[action] = -1; // fallback
+                        }
+                    }
+                }
+            }
+
             // vJoy
             if (j.contains("vJoy")) {
                 if (j["vJoy"].contains("device_id"))
@@ -53,13 +79,13 @@ namespace Utils {
 
                 if (j["vJoy"].contains("axis_mappings")) {
                     for (auto& [axis, mapping] : j["vJoy"]["axis_mappings"].items()) {
-                        cfg.axisMappings[axis] = mapping.get<Utils::AxisMapping>();
+                        cfg.vJoyAxisMappings[axis] = mapping.get<Utils::AxisMapping>();
                     }
                 }
 
                 if (j["vJoy"].contains("button_mappings"))
                     for (auto& [action, button] : j["vJoy"]["button_mappings"].items())
-                        cfg.buttonMappings[action] = button.get<int>();
+                        cfg.vJoyButtonMappings[action] = button.get<int>();
             }
 
         } catch (const std::exception& e) {
@@ -77,9 +103,12 @@ namespace Utils {
     void saveConfig(const Config &cfg, const std::string &filename) {
         json j;
         j["backend"]["selected"] = cfg.backend;
+        j["stickdeadzone"] = cfg.stickdeadzone;
+        j["ViGEm"]["axis_mappings"] = cfg.ViGEmAxisMappings;
+        j["ViGEm"]["button_mappings"] = cfg.ViGEmButtonMappings;
         j["vJoy"]["device_id"] = cfg.vJoyDeviceId;
-        j["vJoy"]["axis_mappings"] = cfg.axisMappings;
-        j["vJoy"]["button_mappings"] = cfg.buttonMappings;
+        j["vJoy"]["axis_mappings"] = cfg.vJoyAxisMappings;
+        j["vJoy"]["button_mappings"] = cfg.vJoyButtonMappings;
 
         std::ofstream file(filename);
         file << std::setw(4) << j << std::endl;
@@ -88,14 +117,23 @@ namespace Utils {
     void printConfig(const Config& $cfg) {
         std::cout << "Selected backend: " << $cfg.backend << "\n";
         std::cout << "vJoy device ID: " << $cfg.vJoyDeviceId << "\n";
+        std::cout << "Stickdeadzone: " << $cfg.stickdeadzone << "\n";
 
-        std::cout << "Axis mappings:\n";
-        for (auto& [axis, mapping] : $cfg.axisMappings)
+        std::cout << "ViGEm Axis mappings:\n";
+        for (auto& [axis, mapping] : $cfg.ViGEmAxisMappings)
             std::cout << "  " << axis << " -> " << mapping << "\n";
 
-        std::cout << "Button mappings:\n";
-        for (auto& [action, button] : $cfg.buttonMappings)
+        std::cout << "ViGEm Button mappings:\n";
+        for (auto& [action, button] : $cfg.ViGEmButtonMappings)
             std::cout << "  " << action << " -> " << button << "\n";
+
+        std::cout << "vJoy Axis mappings:\n";
+        for (auto& [axis, mapping] : $cfg.vJoyAxisMappings)
+            std::cout << "  " << axis << " -> " << mapping << "\n";
+
+        /*std::cout << "vJoy Button mappings:\n";
+        for (auto& [action, button] : $cfg.vJoyButtonMappings)
+            std::cout << "  " << action << " -> " << button << "\n";*/
     }
 
     void printMozaState(const MozaState $state) {
@@ -113,12 +151,40 @@ namespace Utils {
         std::cout << "    " << std::flush;
     }
 
-    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted) {
+    int16_t mapToVJoyAxis(int16_t value, int16_t inMin, int16_t inMax, bool inverted) {
         if (value < inMin) value = inMin;
         if (value > inMax) value = inMax;
         // Scale to 0..32768
         double scaled = ((inMax - value) * (-32768.0 / (inMax - inMin)) + 32768);
-        return static_cast<long>(inverted ? 32768.0-scaled : scaled);
+        return static_cast<int16_t>(inverted ? 32768.0-scaled : scaled);
+    }
+
+    uint8_t mapToByte(int16_t value, int16_t inMin, int16_t inMax) {
+        if (inMin == inMax) return 0; // avoid division by zero
+
+        // Clamp value to the input range
+        value = std::clamp(value, inMin, inMax);
+
+        // Map value from [inMin, inMax] -> [0, 255]
+        int result = (value - inMin) * 255 / (inMax - inMin);
+
+        return static_cast<uint8_t>(result);
+    }
+
+    int16_t remove_stickdeadzone(int16_t x, int16_t deadzone) {
+        constexpr int32_t MAX_VAL = 32767;
+
+        // branchless abs() for int16_t
+        int32_t sign = (x > 0) - (x < 0);
+        int32_t absx = (x ^ (x >> 15)) - (x >> 15);
+
+        // scaled = stickdeadzone + absx * scale_num / scale_den
+        int32_t scaled = deadzone + ((absx * (MAX_VAL - deadzone)) >> 15); // >>15 ≈ /32768
+
+        // clamp just in case
+        if (scaled > MAX_VAL) scaled = MAX_VAL;
+
+        return static_cast<int16_t>(sign * scaled);
     }
 
     std::string wstringToUtf8(const std::wstring &wstr) {

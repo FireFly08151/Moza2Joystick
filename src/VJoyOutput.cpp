@@ -47,31 +47,21 @@ void VJoyOutput::update(const Utils::MozaState &state, const Utils::Config &conf
 
     const int deviceId = config.vJoyDeviceId;
 
-    auto mapAxisValue = [&](const std::string &src, bool inverted) -> LONG {
-        int32_t inMin = -32768, inMax = 32767, raw = 0;
-        if (src == "Wheel") {
-            raw = state.wheel;
-        } else if (src == "ClutchCombined") {
-            raw = state.clutchCombined;
-        } else if (src == "ClutchLeft") {
-            raw = state.clutchLeft;
-        } else if (src == "ClutchRight") {
-            raw = state.clutchRight;
-        } else if (src == "Throttle") {
-            raw = state.throttle;
-        } else if (src == "Clutch") {
-            raw = state.clutch;
-        } else if (src == "Brake") {
-            raw = state.brake;
-        } else if (src == "Handbrake") {
-            raw = state.handbrake;
-        } else {
-            return raw; // neutral midpoint for unhandled/unused
-        }
+    auto mapAxisValue = [&](const std::string &src, bool inverted) -> int16_t {
+        int16_t inMin = -32768, inMax = 32767, raw = 0;
+        if (src == "Wheel") raw = state.wheel;
+        else if (src == "ClutchCombined") raw = state.clutchCombined;
+        else if (src == "ClutchLeft") raw = state.clutchLeft;
+        else if (src == "ClutchRight") raw = state.clutchRight;
+        else if (src == "Throttle") raw = state.throttle;
+        else if (src == "Clutch") raw = state.clutch;
+        else if (src == "Brake") raw = state.brake;
+        else if (src == "Handbrake") raw = state.handbrake;
+        else return raw; // neutral for unhandled axes
         return Utils::mapToVJoyAxis(raw, inMin, inMax, inverted);
     };
 
-    for (const auto &[axisName, mapping] : config.axisMappings) {
+    for (const auto &[axisName, mapping] : config.vJoyAxisMappings) {
         if (mapping.source == "None")
             continue; // Skip unassigned axes entirely
 
@@ -88,7 +78,7 @@ void VJoyOutput::update(const Utils::MozaState &state, const Utils::Config &conf
     }
 
     // Buttons
-    for (const auto &[name, index] : config.buttonMappings) {
+    for (const auto &[name, index] : config.vJoyButtonMappings) {
         int btnIndex = index - 1;
         if (btnIndex >= 0 && btnIndex < 128)
             SetBtn(state.buttons[btnIndex], deviceId, index);

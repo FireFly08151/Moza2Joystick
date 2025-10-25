@@ -56,6 +56,17 @@ if(NOT VJOY_SDK_DIR)
     message(WARNING "VJOY_SDK_DIR not set. Please configure it manually.")
 endif()
 
+
+# ViGEmClient SDK
+set(ViGEmClient_SDK_DIR
+        "$ENV{ViGEmClient_SDK_DIR}"
+        CACHE PATH "Path to the ViGEm SDK directory"
+)
+
+if(NOT ViGEmClient_SDK_DIR)
+    message(WARNING "ViGEmClient_SDK_DIR not set. Please configure it manually.")
+endif()
+
 # Find hidapi (via vcpkg or system package)
 find_package(hidapi CONFIG REQUIRED)
 
@@ -109,6 +120,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${ViGEmClient_SDK_DIR}/include"
 )
 
 link_directories("C:/Program Files (x86)/MOZA_SDK/1.0.1.6/MSVC2022-64/lib")
@@ -117,6 +129,8 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE
         hidapi::hidapi
         "${VJOY_SDK_DIR}/lib/amd64/vJoyInterface.lib"
+        "$<IF:$<CONFIG:Debug>,${ViGEmClient_SDK_DIR}/lib/debug/x64/ViGEmClient.lib,${ViGEmClient_SDK_DIR}/lib/release/x64/ViGEmClient.lib>"
+        setupapi
         dinput8
         dxguid
         user32
@@ -257,6 +271,7 @@ message(STATUS "Version:        ${PROJECT_VERSION}")
 message(STATUS "Build Type:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "vJoy SDK Dir:   ${VJOY_SDK_DIR}")
 message(STATUS "RS21 SDK Dir:   ${RS21_sdk}")
+message(STATUS "ViGEmClient:    ${ViGEmClient_SDK_DIR}")
 message(STATUS "vJoyInterface:  ${VJOYINTERFACE_DLL_PATH}")
 message(STATUS "hidapi.dll:     ${HIDAPI_DLL_PATH}")
 message(STATUS "MOZA_SDK.dll:   ${MOZA_SDK_DLL_PATH}")

@@ -3,6 +3,63 @@
     "selected": "hidapi",
     "available": ["MOZA_SDK", "hidapi"]
   },
+  "stickdeadzone": 0,
+  "ViGEm": {
+    "available_axis_mappings": [
+      "Wheel",
+      "ClutchCombined",
+      "ClutchLeft",
+      "ClutchRight",
+      "Throttle",
+      "Clutch",
+      "Brake",
+      "Handbrake",
+      "None"
+    ],
+    "axis_mappings": {
+      "ThumbLX": {
+        "inverted": false,
+        "source": "Wheel"
+      },
+      "ThumbLY": {
+        "inverted": false,
+        "source": "None"
+      },
+      "ThumbRX": {
+        "inverted": false,
+        "source": "None"
+      },
+      "ThumbRY": {
+        "inverted": false,
+        "source": "None"
+      },
+      "RightTrigger": {
+        "inverted": false,
+        "source": "Throttle"
+      },
+      "LeftTrigger": {
+        "inverted": false,
+        "source": "Brake"
+      }
+    },
+    "button_mappings": {
+      "DPad_up": 5,
+      "DPad_down": 7,
+      "DPad_left": 8,
+      "DPad_right": 6,
+      "start": "None",
+      "back": "None",
+      "left_thumb": 1,
+      "right_thumb": 2,
+      "left_shoulder": 13,
+      "right_shoulder": 14,
+      "guide": "None",
+      "A": 33,
+      "B": 32,
+      "X": 20,
+      "Y": 19
+    }
+  },
   "vJoy": {
     "device_id": 1,
     "available_axis_mappings": [

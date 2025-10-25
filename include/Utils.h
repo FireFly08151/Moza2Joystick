@@ -35,8 +35,36 @@ namespace Utils {
     struct Config {
         std::string backend = "MOZA_SDK";
         int vJoyDeviceId = 1;
+        int stickdeadzone = 0;
 
-        std::map<std::string, Utils::AxisMapping> axisMappings = {
+        std::map<std::string, Utils::AxisMapping> ViGEmAxisMappings = {
+                {"ThumbLX",   {"Wheel",    false}},
+                {"ThumbLY",   {"None",   false}},
+                {"ThumbRX",   {"None",    false}},
+                {"ThumbRY",  {"None", false}},
+                {"RightTrigger",  {"Throttle",     false}},
+                {"LeftTrigger",  {"Brake",     false}}
+        };
+
+        std::map<std::string, int> ViGEmButtonMappings = {
+                {"DPad_up",  1},
+                {"DPad_down",  2},
+                {"DPad_left",  3},
+                {"DPad_right",  4},
+                {"start",  5},
+                {"back",  6},
+                {"left_thumb",  7},
+                {"right_thumb",  8},
+                {"left_shoulder",  9},
+                {"right_shoulder", 10},
+                {"guide", 11},
+                {"A", 12},
+                {"B", 13},
+                {"X", 14},
+                {"Y", 15},
+        };
+
+        std::map<std::string, Utils::AxisMapping> vJoyAxisMappings = {
                 {"X",   {"Wheel",    false}},
                 {"Y",   {"Throttle",   false}},
                 {"Z",   {"Brake",    false}},
@@ -47,7 +75,7 @@ namespace Utils {
                 {"Sl1", {"ClutchRight", false}}
         };
 
-        std::map<std::string, int> buttonMappings = {
+        std::map<std::string, int> vJoyButtonMappings = {
                 {"1", 1},
                 {"2", 2},
                 {"3", 3},
@@ -188,7 +216,9 @@ namespace Utils {
 
     void printMozaState(MozaState $state);
 
-    long mapToVJoyAxis(int32_t value, int32_t inMin, int32_t inMax, bool inverted = false);
+    int16_t mapToVJoyAxis(int16_t value, int16_t inMin, int16_t inMax, bool inverted = false);
+
+    int16_t remove_stickdeadzone(int16_t x, int16_t deadzone = 8000);
 
     std::string wstringToUtf8(const std::wstring& wstr);
 }
