@@ -33,7 +33,10 @@ namespace Utils {
     };
 
     struct Config {
-        std::string backend = "MOZA_SDK";
+        std::string backend = "hidapi";
+        std::vector<std::string> backend_available = {"hidapi","MOZA_SDK"};
+        std::string emulator = "ViGEm";
+        std::vector<std::string> emulator_available = {"ViGEm","vJoy"};
         int vJoyDeviceId = 1;
         int stickdeadzone = 0;
 

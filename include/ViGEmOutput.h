@@ -5,15 +5,16 @@
 #include <ViGEm/Common.h>
 #include <iostream>
 
-#include "Utils.h"  // Assuming this declares MozaState and Config
+#include "Utils.h"
+#include "IEmulator.h"
 
-class ViGEmOutput {
+class ViGEmOutput : public IEmulator{
 public:
     ViGEmOutput() = default;
-    ~ViGEmOutput();
+    ~ViGEmOutput() override;
 
-    bool initialize();
-    void update(const Utils::MozaState &state, const Utils::Config &config) const;
+    bool initialize() override;
+    void update(const Utils::MozaState &state, const Utils::Config &config) const override;
 
 private:
     PVIGEM_CLIENT client = nullptr;

@@ -1,7 +1,11 @@
 {
   "backend": {
     "selected": "hidapi",
-    "available": ["MOZA_SDK", "hidapi"]
+    "available": ["hidapi", "MOZA_SDK"]
+  },
+  "emulator": {
+    "selected": "ViGEm",
+    "available": ["ViGEm", "vJoy"]
   },
   "stickdeadzone": 0,
   "ViGEm": {

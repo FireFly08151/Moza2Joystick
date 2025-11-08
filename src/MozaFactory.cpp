@@ -11,7 +11,7 @@ namespace Utils {
             return std::make_unique<MozaSDK>();
         }
         else if (backend == "hidapi") {
-            std::cout << "Using MozaReader backend\n";
+            std::cout << "Using MozaReader (hidapi) backend\n";
             return std::make_unique<MozaReader>();
         }
         else {

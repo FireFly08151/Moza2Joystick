@@ -46,6 +46,10 @@ namespace Utils {
             if (j.contains("backend") && j["backend"].contains("selected"))
                 cfg.backend = j["backend"]["selected"].get<std::string>();
 
+            // Emulator
+            if (j.contains("emulator") && j["emulator"].contains("selected"))
+                cfg.emulator = j["emulator"]["selected"].get<std::string>();
+
             if (j.contains("stickdeadzone"))
                 cfg.stickdeadzone = j["stickdeadzone"].get<int>();
 
@@ -103,6 +107,9 @@ namespace Utils {
     void saveConfig(const Config &cfg, const std::string &filename) {
         json j;
         j["backend"]["selected"] = cfg.backend;
+        j["backend"]["available"] = cfg.backend_available;
+        j["emulator"]["selected"] = cfg.emulator;
+        j["emulator"]["available"] = cfg.emulator_available;
         j["stickdeadzone"] = cfg.stickdeadzone;
         j["ViGEm"]["axis_mappings"] = cfg.ViGEmAxisMappings;
         j["ViGEm"]["button_mappings"] = cfg.ViGEmButtonMappings;
@@ -116,24 +123,30 @@ namespace Utils {
 
     void printConfig(const Config& $cfg) {
         std::cout << "Selected backend: " << $cfg.backend << "\n";
-        std::cout << "vJoy device ID: " << $cfg.vJoyDeviceId << "\n";
+        std::cout << "Selected emulator: " << $cfg.emulator << "\n";
+        if ($cfg.emulator == "vJoy") {
+            std::cout << "vJoy device ID: " << $cfg.vJoyDeviceId << "\n";
+
+            std::cout << "vJoy Axis mappings:\n";
+            for (auto& [axis, mapping] : $cfg.vJoyAxisMappings)
+                std::cout << "  " << axis << " -> " << mapping << "\n";
+
+            /*std::cout << "vJoy Button mappings:\n";
+            for (auto& [action, button] : $cfg.vJoyButtonMappings)
+                std::cout << "  " << action << " -> " << button << "\n";*/
+        }
+
+        if ($cfg.emulator == "ViGEm") {
+            std::cout << "ViGEm Axis mappings:\n";
+            for (auto &[axis, mapping]: $cfg.ViGEmAxisMappings)
+                std::cout << "  " << axis << " -> " << mapping << "\n";
+
+            std::cout << "ViGEm Button mappings:\n";
+            for (auto &[action, button]: $cfg.ViGEmButtonMappings)
+                std::cout << "  " << action << " -> " << button << "\n";
+        }
+
         std::cout << "Stickdeadzone: " << $cfg.stickdeadzone << "\n";
-
-        std::cout << "ViGEm Axis mappings:\n";
-        for (auto& [axis, mapping] : $cfg.ViGEmAxisMappings)
-            std::cout << "  " << axis << " -> " << mapping << "\n";
-
-        std::cout << "ViGEm Button mappings:\n";
-        for (auto& [action, button] : $cfg.ViGEmButtonMappings)
-            std::cout << "  " << action << " -> " << button << "\n";
-
-        std::cout << "vJoy Axis mappings:\n";
-        for (auto& [axis, mapping] : $cfg.vJoyAxisMappings)
-            std::cout << "  " << axis << " -> " << mapping << "\n";
-
-        /*std::cout << "vJoy Button mappings:\n";
-        for (auto& [action, button] : $cfg.vJoyButtonMappings)
-            std::cout << "  " << action << " -> " << button << "\n";*/
     }
 
     void printMozaState(const MozaState $state) {
