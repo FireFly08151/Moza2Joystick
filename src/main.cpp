@@ -14,7 +14,7 @@ int main() {
         return -1;
     }
 
-    if (!emulator->initialize()) {
+    if (!emulator->initialize(cfg)) {
         std::cerr << "Failed to initialize emulator\n";
         return 1;
     }
@@ -24,7 +24,7 @@ int main() {
 
         Utils::MozaState state = moza->getState();
 
-        emulator->update(state,cfg);
+        emulator->update(state);
 
         Utils::printMozaState(state);
 

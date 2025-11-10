@@ -164,14 +164,6 @@ namespace Utils {
         std::cout << "    " << std::flush;
     }
 
-    int16_t mapToVJoyAxis(int16_t value, int16_t inMin, int16_t inMax, bool inverted) {
-        if (value < inMin) value = inMin;
-        if (value > inMax) value = inMax;
-        // Scale to 0..32768
-        double scaled = ((inMax - value) * (-32768.0 / (inMax - inMin)) + 32768);
-        return static_cast<int16_t>(inverted ? 32768.0-scaled : scaled);
-    }
-
     uint8_t mapToByte(int16_t value, int16_t inMin, int16_t inMax) {
         if (inMin == inMax) return 0; // avoid division by zero
 
@@ -185,19 +177,29 @@ namespace Utils {
     }
 
     int16_t remove_stickdeadzone(int16_t x, int16_t deadzone) {
-        constexpr int32_t MAX_VAL = 32767;
+        if (deadzone == 0) return x; // exact preservation
 
-        // branchless abs() for int16_t
-        int32_t sign = (x > 0) - (x < 0);
-        int32_t absx = (x ^ (x >> 15)) - (x >> 15);
+        constexpr int32_t MAX_POS = 32767;
+        constexpr int32_t MIN_NEG = -32768;
 
-        // scaled = stickdeadzone + absx * scale_num / scale_den
-        int32_t scaled = deadzone + ((absx * (MAX_VAL - deadzone)) >> 15); // >>15 ≈ /32768
+        int32_t val = x;
 
-        // clamp just in case
-        if (scaled > MAX_VAL) scaled = MAX_VAL;
+        // branchless sign: 1 for positive/zero, -1 for negative
+        int32_t sign = (val >= 0) - (val < 0);
 
-        return static_cast<int16_t>(sign * scaled);
+        // branchless absolute value
+        int32_t absx = (val ^ (val >> 31)) - (val >> 31);
+
+        // scale numerator
+        int32_t scaled = deadzone + ((absx - deadzone) * MAX_POS + (MAX_POS/2)) / MAX_POS;
+
+        // restore sign
+        scaled = scaled * sign;
+
+        // clamp to int16_t range
+        scaled = (scaled > MAX_POS) ? MAX_POS : (scaled < MIN_NEG) ? MIN_NEG : scaled;
+
+        return static_cast<int16_t>(scaled);
     }
 
     std::string wstringToUtf8(const std::wstring &wstr) {

@@ -219,8 +219,6 @@ namespace Utils {
 
     void printMozaState(MozaState $state);
 
-    int16_t mapToVJoyAxis(int16_t value, int16_t inMin, int16_t inMax, bool inverted = false);
-
     int16_t remove_stickdeadzone(int16_t x, int16_t deadzone = 8000);
 
     std::string wstringToUtf8(const std::wstring& wstr);

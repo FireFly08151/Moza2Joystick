@@ -9,14 +9,14 @@
 
 
 VJoyOutput::VJoyOutput(uint8_t deviceId)
-        : m_deviceId(deviceId), m_initialized(false) {}
+        : m_deviceId(deviceId) {}
 
 VJoyOutput::~VJoyOutput() {
     if (m_initialized)
         RelinquishVJD(m_deviceId);
 }
 
-bool VJoyOutput::initialize() {
+bool VJoyOutput::initialize(const Utils::Config &conf) {
     if (!vJoyEnabled()) {
         std::cerr << "vJoy driver not enabled!\n";
         return false;
@@ -38,49 +38,96 @@ bool VJoyOutput::initialize() {
     SetAxis(neutral, m_deviceId, HID_USAGE_SL0);
     SetAxis(neutral, m_deviceId, HID_USAGE_SL1);
 
+    stickDeadzone = static_cast<int>(conf.stickdeadzone);
+
+    preprocessConfig(conf);
+
     m_initialized = true;
     return true;
 }
 
-void VJoyOutput::update(const Utils::MozaState &state, const Utils::Config &config) const {
-    if (!m_initialized) return;
+void VJoyOutput::preprocessConfig(const Utils::Config &conf) {
+    axisBindings.clear();
+    buttonBindings.clear();
 
-    const int deviceId = config.vJoyDeviceId;
-
-    auto mapAxisValue = [&](const std::string &src, bool inverted) -> int16_t {
-        int16_t inMin = -32768, inMax = 32767, raw = 0;
-        if (src == "Wheel") raw = state.wheel;
-        else if (src == "ClutchCombined") raw = state.clutchCombined;
-        else if (src == "ClutchLeft") raw = state.clutchLeft;
-        else if (src == "ClutchRight") raw = state.clutchRight;
-        else if (src == "Throttle") raw = state.throttle;
-        else if (src == "Clutch") raw = state.clutch;
-        else if (src == "Brake") raw = state.brake;
-        else if (src == "Handbrake") raw = state.handbrake;
-        else return raw; // neutral for unhandled axes
-        return Utils::mapToVJoyAxis(raw, inMin, inMax, inverted);
+    // --- Axis sources ---
+    static const std::unordered_map<std::string, std::function<int16_t(const Utils::MozaState&)>> axisSources = {
+            {"Wheel",          [](const auto& s){ return s.wheel; }},
+            {"ClutchCombined", [](const auto& s){ return s.clutchCombined; }},
+            {"ClutchLeft",     [](const auto& s){ return s.clutchLeft; }},
+            {"ClutchRight",    [](const auto& s){ return s.clutchRight; }},
+            {"Throttle",       [](const auto& s){ return s.throttle; }},
+            {"Clutch",         [](const auto& s){ return s.clutch; }},
+            {"Brake",          [](const auto& s){ return s.brake; }},
+            {"Handbrake",      [](const auto& s){ return s.handbrake; }}
     };
 
-    for (const auto &[axisName, mapping] : config.vJoyAxisMappings) {
-        if (mapping.source == "None")
-            continue; // Skip unassigned axes entirely
+    // Map logical axis names to vJoy HID usages
+    for (const auto& [axisName, mapping] : conf.vJoyAxisMappings) {
+        if (mapping.source == "None") continue;
 
-        LONG value = mapAxisValue(mapping.source, mapping.inverted);
+        AxisBinding bind{};
+        bind.inverted = mapping.inverted;
 
-        if (axisName == "X")      SetAxis(value, deviceId, HID_USAGE_X);
-        else if (axisName == "Y") SetAxis(value, deviceId, HID_USAGE_Y);
-        else if (axisName == "Z") SetAxis(value, deviceId, HID_USAGE_Z);
-        else if (axisName == "Rx") SetAxis(value, deviceId, HID_USAGE_RX);
-        else if (axisName == "Ry") SetAxis(value, deviceId, HID_USAGE_RY);
-        else if (axisName == "Rz") SetAxis(value, deviceId, HID_USAGE_RZ);
-        else if (axisName == "Sl0") SetAxis(value, deviceId, HID_USAGE_SL0);
-        else if (axisName == "Sl1") SetAxis(value, deviceId, HID_USAGE_SL1);
+        if      (axisName == "X")   bind.target = AxisTarget::X;
+        else if (axisName == "Y")   bind.target = AxisTarget::Y;
+        else if (axisName == "Z")   bind.target = AxisTarget::Z;
+        else if (axisName == "Rx")  bind.target = AxisTarget::Rx;
+        else if (axisName == "Ry")  bind.target = AxisTarget::Ry;
+        else if (axisName == "Rz")  bind.target = AxisTarget::Rz;
+        else if (axisName == "Sl0") bind.target = AxisTarget::Sl0;
+        else if (axisName == "Sl1") bind.target = AxisTarget::Sl1;
+        else bind.target = AxisTarget::None;
+
+        auto it = axisSources.find(mapping.source);
+        if (it != axisSources.end()) bind.getValue = it->second;
+
+        axisBindings.push_back(bind);
     }
 
-    // Buttons
-    for (const auto &[name, index] : config.vJoyButtonMappings) {
+    // --- Buttons ---
+    for (const auto& [name, index] : conf.vJoyButtonMappings) {
         int btnIndex = index - 1;
-        if (btnIndex >= 0 && btnIndex < 128)
-            SetBtn(state.buttons[btnIndex], deviceId, index);
+        if (btnIndex >= 0 && btnIndex < 128) {
+            buttonBindings.push_back({ btnIndex, index });
+        }
+    }
+}
+
+void VJoyOutput::update(const Utils::MozaState &state) const {
+    if (!m_initialized) return;
+
+    // --- Update axes ---
+    for (const auto& b : axisBindings) {
+        if (!b.getValue) continue;
+
+        int16_t value = b.getValue(state);
+
+        if (stickDeadzone != 0 &&
+            (b.target == AxisTarget::X || b.target == AxisTarget::Y ||
+             b.target == AxisTarget::Z || b.target == AxisTarget::Rx ||
+             b.target == AxisTarget::Ry || b.target == AxisTarget::Rz ||
+             b.target == AxisTarget::Sl0 || b.target == AxisTarget::Sl1)) {
+            value = Utils::remove_stickdeadzone(value, stickDeadzone);
+        }
+
+        LONG vJoyValue = mapToVJoyAxis(value, b.inverted);
+
+        switch (b.target) {
+            case AxisTarget::X:   SetAxis(vJoyValue, m_deviceId, HID_USAGE_X); break;
+            case AxisTarget::Y:   SetAxis(vJoyValue, m_deviceId, HID_USAGE_Y); break;
+            case AxisTarget::Z:   SetAxis(vJoyValue, m_deviceId, HID_USAGE_Z); break;
+            case AxisTarget::Rx:  SetAxis(vJoyValue, m_deviceId, HID_USAGE_RX); break;
+            case AxisTarget::Ry:  SetAxis(vJoyValue, m_deviceId, HID_USAGE_RY); break;
+            case AxisTarget::Rz:  SetAxis(vJoyValue, m_deviceId, HID_USAGE_RZ); break;
+            case AxisTarget::Sl0: SetAxis(vJoyValue, m_deviceId, HID_USAGE_SL0); break;
+            case AxisTarget::Sl1: SetAxis(vJoyValue, m_deviceId, HID_USAGE_SL1); break;
+            default: break;
+        }
+    }
+
+    // --- Update buttons ---
+    for (const auto& b : buttonBindings) {
+        SetBtn(state.buttons[b.physicalIndex], m_deviceId, b.vJoyButtonIndex);
     }
 }

@@ -6,8 +6,8 @@ public:
     virtual ~IEmulator() = default;
 
     // Initialize emulator
-    virtual bool initialize() = 0;
+    virtual bool initialize(const Utils::Config &config) = 0;
 
     // Update the state of the emulator
-    virtual void update(const Utils::MozaState &state, const Utils::Config &config) const = 0;
+    virtual void update(const Utils::MozaState &state) const = 0;
 };
