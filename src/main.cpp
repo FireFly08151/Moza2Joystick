@@ -1,7 +1,6 @@
 #include <thread>
 #include <iostream>
-#include "MozaFactory.h"
-#include "EmulatorFactory.h"
+#include "Factories.h"
 
 int main() {
     Utils::Config cfg = Utils::loadConfig("config.json");
