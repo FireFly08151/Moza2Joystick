@@ -193,30 +193,28 @@ namespace Utils {
         return static_cast<uint8_t>(result);
     }
 
+    /**
+     * Counteracts the deadzone implemented in some games by scaling the values to be outside the deadzone.
+     * It's not 100% accurate, but faster than doing it properly ;D
+     * @param x Input value which gets adjusted
+     * @param deadzone defaults to 8000 (GTA V stick deadzone)
+     * @return - the adjusted value
+     */
     int16_t remove_stickDeadzone(int16_t x, int16_t deadzone) {
         if (deadzone == 0) return x; // exact preservation
 
-        constexpr int32_t MAX_POS = 32767;
-        constexpr int32_t MIN_NEG = -32768;
+        constexpr int32_t MAX_VAL = 32767;
 
-        int32_t val = x;
+        // branchless abs() for int16_t
+        int32_t sign = (x > 0) - (x < 0);
+        int32_t absx = (x ^ (x >> 15)) - (x >> 15);
 
-        // branchless sign: 1 for positive/zero, -1 for negative
-        int32_t sign = (val >= 0) - (val < 0);
+        int32_t scaled = deadzone + ((absx * (MAX_VAL - deadzone)) >> 15); // >>15 ≈ /32768
 
-        // branchless absolute value
-        int32_t absx = (val ^ (val >> 31)) - (val >> 31);
+        // clamp just in case
+        if (scaled > MAX_VAL) scaled = MAX_VAL;
 
-        // scale numerator
-        int32_t scaled = deadzone + ((absx - deadzone) * MAX_POS + (MAX_POS/2)) / MAX_POS;
-
-        // restore sign
-        scaled = scaled * sign;
-
-        // clamp to int16_t range
-        scaled = (scaled > MAX_POS) ? MAX_POS : (scaled < MIN_NEG) ? MIN_NEG : scaled;
-
-        return static_cast<int16_t>(scaled);
+        return static_cast<int16_t>(sign * scaled);
     }
 
     std::string wstringToUtf8(const std::wstring &wstr) {

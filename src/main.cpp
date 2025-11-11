@@ -20,34 +20,50 @@ int main() {
 
     using clock = std::chrono::high_resolution_clock;
     using namespace std::chrono;
-
-    const int print_interval = 20;
-    double total_ms = 0.0;
-    int count = 0;
-    double avg_ms = 0;
+    auto lastReportTime = clock::now();
+    constexpr int smoothingWindow = 100;
+    std::array<double, smoothingWindow> intervalHistory{};
+    int intervalIndex = 0;
+    double avgInterval = 0;
 
     while (true) {
-        auto start = clock::now();
-
+        auto readStart = clock::now();
         moza->update();
+        auto readEnd = clock::now();
 
+        // ---- Compute report interval ----
+        auto now = readEnd;
+        double reportIntervalMs = duration<double, std::milli>(now - lastReportTime).count();
+        lastReportTime = now;
+
+        // ---- Update moving average ----
+        intervalHistory[intervalIndex++] = reportIntervalMs;
+        if (intervalIndex >= smoothingWindow) intervalIndex = 0;
+
+        for (double v : intervalHistory) avgInterval += v;
+        avgInterval /= smoothingWindow;
+
+        // ---- Process data ----
+        auto processStart = clock::now();
         Utils::MozaState state = moza->getState();
-
         emulator->update(state);
+        auto processEnd = clock::now();
 
-        auto end = clock::now();
-        duration<double, std::milli> elapsed = end - start;
+        /*double readTimeMs = duration<double, std::milli>(readEnd - readStart).count();
+        double processTimeMs = duration<double, std::milli>(processEnd - processStart).count();
+        std::cout << "\rHID wait: " << std::fixed << std::setprecision(4) << readTimeMs
+                  << " ms, Process Time: " << std::fixed << std::setprecision(4) << processTimeMs
+                  << " ms, Interval: " << std::fixed << std::setprecision(4) << reportIntervalMs
+                  << " ms, Avg Interval: " << std::fixed << std::setprecision(4) << avgInterval
+                  << " ms";*/
 
-        total_ms += elapsed.count();
-        count++;
+        //Utils::printMozaState(state, avgInterval);
 
-        if (count % print_interval == 0) {
-            avg_ms = total_ms / print_interval;
-            total_ms = 0.0;
-        }
-
-        Utils::printMozaState(state, avg_ms);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::cout << "\r"
+                  << std::fixed << std::setprecision(4) << avgInterval << "ms"
+                  << " Wheel: " << std::setw(6) << std::setfill(' ') << state.wheel
+                  << " Throttle: " << std::setw(6)<< std::setfill(' ') << static_cast<int>(state.throttle)
+                  << " Brake: " << std::setw(6)<< std::setfill(' ') << static_cast<int>(state.brake)
+                  << "    " << std::flush;
     }
 }

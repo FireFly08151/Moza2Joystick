@@ -26,6 +26,7 @@ bool MozaReader::initialize() {
         std::cerr << "Failed to open Moza device.\n";
         return false;
     }
+    hid_set_nonblocking(deviceHandle, 0);
 
     std::cout << "Moza device initialized successfully.\n";
     return true;
@@ -126,33 +127,20 @@ bool MozaReader::readData(unsigned char *buffer) {
     const size_t bufferSize = 48;
     std::fill(buffer, buffer + bufferSize, 0);
 
-    int totalBytes = 0;
-
-    // Keep reading until buffer is full or no more data is available
-    while (totalBytes < static_cast<int>(bufferSize)) {
-        int res = hid_read(deviceHandle, buffer + totalBytes, bufferSize - totalBytes);
-        if (res < 0) {
+    int res = hid_read(deviceHandle, buffer, bufferSize);
+    if (res < 0) {
 #ifdef _WIN32
-            std::wstring ws(hid_error(deviceHandle));
-            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
-            std::cerr << "Error reading HID device: " << conv.to_bytes(ws) << "\n";
+        std::wstring ws(hid_error(deviceHandle));
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+        std::cerr << "Error reading HID device: " << conv.to_bytes(ws) << "\n";
 #else
-            std::cerr << "Error reading HID device: " << hid_error(deviceHandle) << "\n";
+        std::cerr << "Error reading HID device: " << hid_error(deviceHandle) << "\n";
 #endif
-            return false;
-        } else if (res == 0) {
-            // No more data available right now
-            break;
-        }
-        totalBytes += res;
-    }
-
-    if (totalBytes == 0) {
-        // Nothing read
         return false;
     }
 
-    return true;
+    // res == 0 won't happen in blocking mode unless timeout or disconnect
+    return res > 0;
 }
 
 /**
