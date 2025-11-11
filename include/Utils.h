@@ -219,7 +219,9 @@ namespace Utils {
 
     void printMozaState(MozaState $state);
 
-    int16_t remove_stickdeadzone(int16_t x, int16_t deadzone = 8000);
+    void printMozaState(MozaState $state, double ms);
+
+    int16_t remove_stickDeadzone(int16_t x, int16_t deadzone = 8000);
 
     std::string wstringToUtf8(const std::wstring& wstr);
 }

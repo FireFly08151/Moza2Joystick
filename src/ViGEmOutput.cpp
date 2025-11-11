@@ -137,7 +137,7 @@ void ViGEmOutput::update(const Utils::MozaState &state) const {
         if (stickDeadzone != 0 &&
             (b.target == AxisTarget::ThumbLX || b.target == AxisTarget::ThumbLY ||
              b.target == AxisTarget::ThumbRX || b.target == AxisTarget::ThumbRY)) {
-            value = Utils::remove_stickdeadzone(value, stickDeadzone);
+            value = Utils::remove_stickDeadzone(value, stickDeadzone);
         }
 
         switch (b.target) {
@@ -158,7 +158,7 @@ void ViGEmOutput::update(const Utils::MozaState &state) const {
     }
 
     /*std::cout << "\r" << static_cast<int>(state.wheel) << ' '
-              << static_cast<int>(Utils::remove_stickdeadzone(state.wheel, stickDeadzone)) << ' '
+              << static_cast<int>(Utils::remove_stickDeadzone(state.wheel, stickDeadzone)) << ' '
               << static_cast<int>(report.sThumbLX) << ' '
               << static_cast<int>(fast_map(state.throttle)) << ' '
               << static_cast<int>(fast_map(state.brake)) << "        ";*/

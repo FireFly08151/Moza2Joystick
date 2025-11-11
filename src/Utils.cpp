@@ -164,6 +164,23 @@ namespace Utils {
         std::cout << "    " << std::flush;
     }
 
+    void printMozaState(const MozaState $state, double ms) {
+        std::cout << "\r"
+                  << std::fixed << std::setprecision(4) << ms << "ms"
+                  << " Wheel: " << std::setw(6) << std::setfill(' ') << $state.wheel
+                  << " Throttle: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.throttle)
+                  << " Brake: " << std::setw(6)<< std::setfill(' ') << static_cast<int>($state.brake)
+                  << " Clutch: " << std::setw(6) << std::setfill(' ') << static_cast<int>($state.clutchCombined)
+                  << " Buttons: ";
+
+        for (int i = 0; i < 50; ++i) {
+            std::cout << ($state.buttons[i] ? '1' : '0');
+            if (i < 49) std::cout << ' ';
+        }
+
+        std::cout << "    " << std::flush;
+    }
+
     uint8_t mapToByte(int16_t value, int16_t inMin, int16_t inMax) {
         if (inMin == inMax) return 0; // avoid division by zero
 
@@ -176,7 +193,7 @@ namespace Utils {
         return static_cast<uint8_t>(result);
     }
 
-    int16_t remove_stickdeadzone(int16_t x, int16_t deadzone) {
+    int16_t remove_stickDeadzone(int16_t x, int16_t deadzone) {
         if (deadzone == 0) return x; // exact preservation
 
         constexpr int32_t MAX_POS = 32767;

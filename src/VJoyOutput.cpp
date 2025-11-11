@@ -108,7 +108,7 @@ void VJoyOutput::update(const Utils::MozaState &state) const {
              b.target == AxisTarget::Z || b.target == AxisTarget::Rx ||
              b.target == AxisTarget::Ry || b.target == AxisTarget::Rz ||
              b.target == AxisTarget::Sl0 || b.target == AxisTarget::Sl1)) {
-            value = Utils::remove_stickdeadzone(value, stickDeadzone);
+            value = Utils::remove_stickDeadzone(value, stickDeadzone);
         }
 
         LONG vJoyValue = mapToVJoyAxis(value, b.inverted);
